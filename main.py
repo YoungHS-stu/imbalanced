@@ -2,38 +2,12 @@
 #! tqdm用于显示进度条的效果
 import pandas as pd
 import numpy as np
-import time
-import logging
+# import time
+# import logging
 
-from DataTool import DataLoader
-from DataTool import DataCleaner
-from DataTool import DataPreprocessor
-from DataTool import DataResampler
-
-from Trainer  import Trainer
-from Rater    import Rater
-from Painter  import Painter
-data_paths = ["G:/OneDrive - teleworm/code/4research/python/projects/imbalanced/datasets/german/german.csv",
-              # "G:/OneDrive - teleworm/code/4research/python/projects/imbalanced/datasets/australia/australian.dat"
-             ]
-resample_methods = ["None", "ROS", "RUS", "SMOTE", "AdaptiveSMOTE"]
 if __name__ == '__main__':
-    
-    data_loader       = DataLoader()
-    data_cleaner      = DataCleaner()
-    data_preprocessor = DataPreprocessor()
-    data_resampler    = DataResampler()
-    trainer           = Trainer()
-    rater             = Rater()
-    painter           = Painter()
-    
-    data_loader.info()
-    data_cleaner.info()
-    data_preprocessor.info()
-    data_resampler.info()
-    trainer.info()
-    rater.info()
-    painter.info()
+    from config import *
+
     # loop datasets
     for data_path in data_paths:
         train_df = data_loader.load_csv_to_pandas(data_path)
@@ -45,17 +19,19 @@ if __name__ == '__main__':
         train_df_X = data_preprocessor.onehotalize_data(train_df_X)
         
         # loop resample_methods
-        # for resample_method in resample_methods:
-        # train_df_X, train_df_y = data_resampler.random_over_sampling(train_df_X, train_df_y)
-        
-        train_df_X, train_df_y = data_resampler.adaptive_smote(train_df_X.to_numpy(), train_df_y.to_numpy())
-        
-
-        X_train, X_test, y_train, y_test = data_preprocessor.split_to_train_test(train_df_X, train_df_y,
-                                                                                 test_size=0.3, random_state=2)
-
-        y_predict, classifier = trainer.extra_tree_classifier(X_train, X_test, y_train, y_test)
-        
-        print(rater.generate_rating_report(y_test,y_predict, metrics=["all"]))
+        resample_methods = over_resample_methods + under_resample_methods
+        for resample_method in resample_methods:
+            try:
+                resampled_train_df_X, resampled_train_df_y = resample_method(train_df_X, train_df_y)
+            except Exception as e:
+                print("Resampling method {} is not working, skip it. exception msg is {}".format(resample_method.__name__, e))
+                continue
+            X_train, X_test, y_train, y_test = data_preprocessor.split_to_train_test(resampled_train_df_X, resampled_train_df_y,
+                                                                                     test_size=0.3, random_state=2)
+            # loop for training methods
+            # for training_method in training_methods:
+            y_predict, classifier = trainer.extra_tree_classifier(X_train, X_test, y_train, y_test)
+            print("Resampling method is {}".format(resample_method.__name__))
+            print(rater.generate_rating_report(y_test,y_predict, metrics=["all"]))
             
 

@@ -1,5 +1,6 @@
 #! 数据重采样
 from pandas import DataFrame
+from numpy import ndarray
 from collections import Counter
 class DataResampler:
     def __init__(self):
@@ -8,10 +9,39 @@ class DataResampler:
     def info(self):
         print("This is data resampler")
         
-    def random_under_sampling(self, data: DataFrame):
+    def random_under_sampling(self,  X, y):
         from imblearn.under_sampling import RandomUnderSampler
-
-        return data
+        return RandomUnderSampler(random_state=0).fit_resample(X,y)
+    
+    def cluster_centroids(self,  X, y):
+        from imblearn.under_sampling import ClusterCentroids
+        return ClusterCentroids(random_state=0).fit_resample(X,y)
+    
+    def near_miss(self,  X, y):
+        from imblearn.under_sampling import NearMiss
+        return NearMiss().fit_resample(X,y)
+    
+    def instance_hardness_threshold(self,  X, y):
+        from imblearn.under_sampling import InstanceHardnessThreshold
+        return InstanceHardnessThreshold(random_state=0).fit_resample(X,y)
+    
+    
+    def tomek_links(self,  X, y):
+        from imblearn.under_sampling import TomekLinks
+        return TomekLinks().fit_resample(X,y)
+    
+    def edited_nearest_neighbours(self,  X, y):
+        from imblearn.under_sampling import EditedNearestNeighbours
+        return EditedNearestNeighbours().fit_resample(X,y)
+    
+    def repeated_edited_nearest_neighbours(self,  X, y):
+        from imblearn.under_sampling import RepeatedEditedNearestNeighbours
+        return RepeatedEditedNearestNeighbours().fit_resample(X,y)
+    
+    def all_knn(self,  X, y):
+        from imblearn.under_sampling import AllKNN
+        return AllKNN().fit_resample(X,y)
+    
     
     def random_over_sampling(self, X, y):
         from imblearn.over_sampling import RandomOverSampler
@@ -22,8 +52,29 @@ class DataResampler:
         from imblearn.over_sampling import SMOTE
         return SMOTE(random_state=0).fit_resample(X, y)
     
-    def bordered_smote(self, data):
-        pass
+    def bordered_smote(self, X, y):
+        from imblearn.over_sampling import BorderlineSMOTE
+        return BorderlineSMOTE(random_state=0).fit_resample(X, y)
+    
+    def svm_smote(self, X, y):
+        from imblearn.over_sampling import SVMSMOTE
+        return SVMSMOTE(random_state=0).fit_resample(X, y)
+    
+    def adasyn(self, X, y):
+        from imblearn.over_sampling import ADASYN
+        return ADASYN(random_state=0).fit_resample(X, y)
+    
+    def kmeans_smote(self, X, y):
+        from imblearn.over_sampling import KMeansSMOTE
+        return KMeansSMOTE(random_state=0).fit_resample(X, y)
+    
+    def smotenc(self, X, y):
+        from imblearn.over_sampling import SMOTENC
+        return SMOTENC(random_state=0).fit_resample(X, y)
+    
+    def smoten(self, X, y):
+        from imblearn.over_sampling import SMOTEN
+        return SMOTEN(random_state=0).fit_resample(X, y)
     
     def adaptive_smote(self, X, y ,*, N=100, K=5, C=3):
         from sklearn.neighbors import NearestNeighbors
@@ -84,6 +135,7 @@ class DataResampler:
         def _populate_danger(inner, danger, synthetic):
             pass
         
+        X, y = X.to_numpy(), y.to_numpy()
         inner, danger = _divide_into_inner_and_danger(X, y, K=5, C=3)
         
         minority_num = X[y == 0].shape[0]
@@ -92,9 +144,9 @@ class DataResampler:
 
         x_synthetic = np.zeros((majority_num-minority_num, num_attrs))
 
-        if inner.shape[0] != 0:
-            _populate_inner(inner, danger, x_synthetic)
+        if inner.shape[0] > 10 or inner.shape[0]/minority_num > 0.2:
             print("hit adaptive smote")
+            _populate_inner(inner, danger, x_synthetic)
         else:
             from imblearn.over_sampling import RandomOverSampler
             X_resampled, y_resampled = RandomOverSampler(random_state=0).fit_resample(X, y)
@@ -102,6 +154,7 @@ class DataResampler:
         
         y_synthetic = np.zeros(majority_num-minority_num,)
         return np.concatenate((X, x_synthetic), axis=0), np.concatenate((y, y_synthetic) ,axis=0)
+
 
 if __name__ == '__main__':
     data_path = "G:/OneDrive - teleworm/code/4research/python/projects/imbalanced/datasets/german/german.csv"
