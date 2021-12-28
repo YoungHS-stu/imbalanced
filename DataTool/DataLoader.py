@@ -66,3 +66,13 @@ class DataLoader:
     # print(type(data[0][1]))
     # 
     # _delete_trailing_symbol(data_path, ',')
+
+
+if __name__ == '__main__':
+    data_path = "G:/OneDrive - teleworm/code/4research/python/projects/imbalanced/datasets/cs-train/cs-train.csv"
+    from DataTool import DataLoader
+    from collections import Counter
+    data_loader = DataLoader()
+    train_df = data_loader.load_csv_to_pandas(data_path)
+    # print('Original dataset shape %s' % Counter(train_df_y))
+    

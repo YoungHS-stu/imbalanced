@@ -9,6 +9,10 @@ class DataResampler:
     def info(self):
         print("This is data resampler")
         
+        
+    def no_resampling(self, X, y):
+        return X, y
+    
     def random_under_sampling(self,  X, y):
         from imblearn.under_sampling import RandomUnderSampler
         return RandomUnderSampler(random_state=0).fit_resample(X,y)
