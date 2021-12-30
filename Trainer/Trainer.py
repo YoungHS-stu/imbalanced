@@ -8,17 +8,30 @@ class Trainer:
         print("This is Trainer")
         
     # get y_predict and classifier
-    def extra_tree_classifier(self, X_train, X_test, y_train, y_test):
+    def extra_tree_classifier(self, X_train, X_test, y_train):
         from sklearn.ensemble import ExtraTreesClassifier
         extra_tree_clf = ExtraTreesClassifier(n_estimators=250, random_state=1)
         extra_tree_clf.fit(X_train, y_train)
         return extra_tree_clf.predict(X_test), extra_tree_clf
         
 
-    def random_forest_classifier(self, data):
+    def random_forest_classifier(self, X_train, X_test, y_train):
         from sklearn.ensemble import RandomForestClassifier
         random_forest_classifier = RandomForestClassifier(n_estimators=50, random_state=1)
-        random_forest_classifier.fit(data, data)
-        
+        random_forest_classifier.fit(X_train, y_train)
+        return random_forest_classifier.predict(X_test), random_forest_classifier
+    
+    def gradient_boosting_classifier(self, X_train, X_test, y_train):
+        from sklearn.ensemble import GradientBoostingClassifier
+        clf = GradientBoostingClassifier(n_estimators=50, random_state=1)
+        clf.fit(X_train, y_train)
+        return clf.predict(X_test), clf
+
+    def support_vector_machine(self, X_train, X_test, y_train):
+        from sklearn.svm import SVC
+        clf = SVC(kernel='linear', C=1, gamma=1)
+        clf.fit(X_train, y_train)
+        return clf.predict(X_test), clf
+
     def train(self, classifier):
         classifier.fit()

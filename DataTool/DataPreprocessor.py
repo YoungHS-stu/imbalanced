@@ -10,7 +10,10 @@ class DataPreprocessor:
         print("This is Data Preprocessor")
     
     def split_to_x_and_y_in_pandas(self, data, y_column_name="label") -> (pd.DataFrame, pd.Series):
-        return data.loc[:, data.columns != 'label'], data['label']
+        #! there are different ways for this functionality
+        #   data[data.columns.difference(['label'])],          data['label']
+        #   data[data.columns[~data.columns.isin(['label'])]], data['label']
+        return data.loc[:, data.columns != y_column_name], data[y_column_name]
     
     def split_to_train_test(self, train_df_X, train_df_y, test_size=0.3, random_state=1):
         X_train, X_test, y_train, y_test = train_test_split(train_df_X, train_df_y,

@@ -59,7 +59,7 @@ class DataCleaner:
                 data.loc[data.score.isnull(),  'score_change'] = 1
                 data.loc[data.score.notnull(), 'score_change'] = 0
             nan_value_index = data[col][data[col].isna()].index.to_list()
-            
+            nan_num = len(nan_value_index)
             #! 对于 mean, median, mode, given这类的，nan填充的值是一样的，所以replace_value是一个数字
             #! 否则的话是一个列表
             replace_value = 0
@@ -67,10 +67,10 @@ class DataCleaner:
             elif method == "median":    replace_value = data[col].median()
             elif method == "mode":      replace_value = data[col].mode()
             elif method == "give":      replace_value = given_value
-            elif method == "knn":       replace_value     = self. __replace_nan_with_knn_by_col(data, col)
-            elif method == "gaussian":  replace_value     = self. __replace_nan_with_gaussian_by_col(data, col)
-            elif method == "weibull":   replace_value     = self. __replace_nan_with_weibull_by_col(data, col)
-            elif method == "random_forest": replace_value = self. __replace_nan_with_rf_by_col(data, col)
+            elif method == "knn":       replace_value     = self. __replace_nan_with_knn_by_col(data, col, nan_num)
+            elif method == "gaussian":  replace_value     = self. __replace_nan_with_gaussian_by_col(data, col, nan_num)
+            elif method == "weibull":   replace_value     = self. __replace_nan_with_weibull_by_col(data, col, nan_num)
+            elif method == "random_forest": replace_value = self. __replace_nan_with_rf_by_col(data, col, nan_num)
             elif method == "delete":    return data.drop(nan_value_index)
             
             data.loc[nan_value_index, col] = replace_value
@@ -78,17 +78,44 @@ class DataCleaner:
     def __replace_nan_with_class_mean_by_col(self, data: pd.DataFrame, col:str):
         pass
     
-    def __replace_nan_with_knn_by_col(self, data: pd.DataFrame, col:str) -> list:
-        pass
+    def __replace_nan_with_knn_by_col(self, data: pd.DataFrame, col:str, count: int, 
+                                      is_dispersed=False, k=5) -> list:
+        if is_dispersed: #! is_dispersed为True代表离散数据, 采用knn分类器, False代表连续, 采用knn回归器
+            from sklearn.neighbors import KNeighborsClassifier
+            clf = KNeighborsClassifier(n_neighbors=k, weights='distance')
+        else:
+            from sklearn.neighbors import KNeighborsRegressor
+            clf = KNeighborsRegressor(n_neighbors=k, weights='distance')
+        
+        X, y = data[data.columns.difference([col])], data[col]
+        X_train, X_test, y_train = X[~data[col].isna()], X[data[col].isna()], y[~data[col].isna()]
+        
+        return clf.fit(X_train, y_train).predict(X_test)
+
+    def __replace_nan_with_rf_by_col(self, data: pd.DataFrame, col:str, count: int,
+                                     is_dispersed=False, n=20) -> list:
+        if is_dispersed:  # ! is_dispersed为True代表离散数据, 采用分类器, False代表连续, 采用回归器
+            from sklearn.ensemble import RandomForestClassifier
+            clf = RandomForestClassifier(n_estimators=n)
+        else:
+            from sklearn.ensemble import RandomForestRegressor
+            clf = RandomForestRegressor(n_estimators=n)
+
+        X, y = data[data.columns.difference([col])], data[col]
+        X_train, X_test, y_train = X[~data[col].isna()], X[data[col].isna()], y[~data[col].isna()]
+
+        return clf.fit(X_train, y_train).predict(X_test)
     
-    def __replace_nan_with_rf_by_col(self, data: pd.DataFrame, col:str) -> list:
-        pass
+    def __replace_nan_with_gaussian_by_col(self, data: pd.DataFrame, col:str, count: int) -> list:
+        miu, sigma =  data[col].mean(), data[col].std()
+        return np.random.normal(miu, sigma, count).tolist()
     
-    def __replace_nan_with_gaussian_by_col(self, data: pd.DataFrame, col:str) -> list:
-        pass
-    
-    def __replace_nan_with_weibull_by_col(self, data: pd.DataFrame, col:str) -> list:
-        pass
+    def __replace_nan_with_weibull_by_col(self, data: pd.DataFrame, col:str, count: int) -> list:
+        from scipy.stats import exponweib
+        mean, var = data[col].mean(), data[col].var()
+        a,c,_,_ = exponweib.fit(data, floc=mean, fscale=var)
+        sample = exponweib.rvs(a=a, c=c, loc=mean, scale=var, size=count)
+        return sample.tolist()
     
     def __clean_nan_value_in_pandas(self, data, method:str):
         if method=="delete":
@@ -99,17 +126,7 @@ class DataCleaner:
         logger.info("done deleting nan value")
         return data
     
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
+
     def clean_missing_value(self, data):
         print("cleaning missing data")
         if isinstance(data, pd.DataFrame):
@@ -146,5 +163,3 @@ if __name__ == '__main__':
     data_cleaner = DataCleaner()
     data_cleaner.info()
     # data_cleaner.clean_nan_value(data,method="delete")
-    
-    
