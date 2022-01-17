@@ -20,32 +20,32 @@ class DataResampler:
     
     def cluster_centroids(self,  X, y):
         from imblearn.under_sampling import ClusterCentroids
-        return ClusterCentroids(random_state=0).fit_resample(X,y)
+        return ClusterCentroids(random_state=0, n_jobs=12).fit_resample(X,y)
     
     def near_miss(self,  X, y):
         from imblearn.under_sampling import NearMiss
-        return NearMiss().fit_resample(X,y)
+        return NearMiss(n_jobs=12).fit_resample(X,y)
     
     def instance_hardness_threshold(self,  X, y):
         from imblearn.under_sampling import InstanceHardnessThreshold
-        return InstanceHardnessThreshold(random_state=0).fit_resample(X,y)
+        return InstanceHardnessThreshold(random_state=0, n_jobs=12).fit_resample(X,y)
     
     
     def tomek_links(self,  X, y):
         from imblearn.under_sampling import TomekLinks
-        return TomekLinks().fit_resample(X,y)
+        return TomekLinks(n_jobs=12).fit_resample(X,y)
     
     def edited_nearest_neighbours(self,  X, y):
         from imblearn.under_sampling import EditedNearestNeighbours
-        return EditedNearestNeighbours().fit_resample(X,y)
+        return EditedNearestNeighbours(n_jobs=12).fit_resample(X,y)
     
     def repeated_edited_nearest_neighbours(self,  X, y):
         from imblearn.under_sampling import RepeatedEditedNearestNeighbours
-        return RepeatedEditedNearestNeighbours().fit_resample(X,y)
+        return RepeatedEditedNearestNeighbours(n_jobs=12).fit_resample(X,y)
     
     def all_knn(self,  X, y):
         from imblearn.under_sampling import AllKNN
-        return AllKNN().fit_resample(X,y)
+        return AllKNN(n_jobs=12).fit_resample(X,y)
     
     
     def random_over_sampling(self, X, y):
@@ -55,31 +55,31 @@ class DataResampler:
     
     def basic_smote(self,  X, y):
         from imblearn.over_sampling import SMOTE
-        return SMOTE(random_state=0).fit_resample(X, y)
+        return SMOTE(random_state=0, n_jobs=12).fit_resample(X, y)
     
     def bordered_smote(self, X, y):
         from imblearn.over_sampling import BorderlineSMOTE
-        return BorderlineSMOTE(random_state=0).fit_resample(X, y)
+        return BorderlineSMOTE(random_state=0, n_jobs=12).fit_resample(X, y)
     
     def svm_smote(self, X, y):
         from imblearn.over_sampling import SVMSMOTE
-        return SVMSMOTE(random_state=0).fit_resample(X, y)
+        return SVMSMOTE(random_state=0, n_jobs=12).fit_resample(X, y)
     
     def adasyn(self, X, y):
         from imblearn.over_sampling import ADASYN
-        return ADASYN(random_state=0).fit_resample(X, y)
+        return ADASYN(random_state=0, n_jobs=12).fit_resample(X, y)
     
     def kmeans_smote(self, X, y):
         from imblearn.over_sampling import KMeansSMOTE
-        return KMeansSMOTE(random_state=0).fit_resample(X, y)
+        return KMeansSMOTE(random_state=0, n_jobs=12).fit_resample(X, y)
     
     def smotenc(self, X, y):
         from imblearn.over_sampling import SMOTENC
-        return SMOTENC(random_state=0).fit_resample(X, y)
+        return SMOTENC(random_state=0, n_jobs=12).fit_resample(X, y)
     
     def smoten(self, X, y):
         from imblearn.over_sampling import SMOTEN
-        return SMOTEN(random_state=0).fit_resample(X, y)
+        return SMOTEN(random_state=0, n_jobs=12).fit_resample(X, y)
     
     def adaptive_smote(self, X, y ,*, N=100, K=5, C=3):
         from sklearn.neighbors import NearestNeighbors
@@ -139,8 +139,10 @@ class DataResampler:
 
         def _populate_danger(inner, danger, synthetic):
             pass
-        
-        # X, y = X.to_numpy(), y.to_numpy()
+
+        if not isinstance(X, ndarray):
+            X, y = X.to_numpy(), y.to_numpy()
+            
         inner, danger = _divide_into_inner_and_danger(X, y, K=5, C=3)
         
         minority_num = X[y == 0].shape[0] #! 这样其实不耗时: 10万个才0.005s
@@ -160,7 +162,7 @@ class DataResampler:
         y_synthetic = np.zeros(majority_num-minority_num,)
         return np.concatenate((X, x_synthetic), axis=0), np.concatenate((y, y_synthetic) ,axis=0)
 
-    def adaptive_smote_pd(self, X, y, K=5, C=3):
+    def adaptive_smote_pd(self, X, y, K=5, C=3, n_jobs=6):
         from sklearn.neighbors import NearestNeighbors
         import numpy as np
         
@@ -216,9 +218,9 @@ class DataResampler:
             inner_neigh = NearestNeighbors(n_neighbors=2)
             inner_neigh.fit(inner)
             danger_neigh = NearestNeighbors(n_neighbors=2)
-            danger_neigh.fit(inner)
+            danger_neigh.fit(danger)
             deltas = np.random.rand(synthetic.shape[0])
-            for i in tqdm(range(synthetic.shape[0])):
+            for i in tqdm(range(synthetic.shape[0])): #! 应该可以拆分进行多进程计算
                 inner_idx = np.random.randint(0, inner.shape[0])
                 # point_nb_i = np.zeros((1, num_attrs))
                 point_i = inner[inner_idx]
@@ -233,14 +235,12 @@ class DataResampler:
                 # ! new ponit put in synthetic
                 synthetic[i] = point_i + deltas[i] * (synthetic[i] - point_i)
 
-        def _populate_danger(inner, danger, synthetic):
-            pass
-        
-        X, y = X.to_numpy(), y.to_numpy()
+        if not isinstance(X, ndarray):
+            X, y = X.to_numpy(), y.to_numpy()
+
         inner, danger = _divide_into_inner_and_danger(X, y, K=5, C=3)
 
-        minority_num = X[y == 0].shape[0]
-        majority_num = X[y == 1].shape[0]
+        minority_num, majority_num = X[y == 0].shape[0], X[y == 1].shape[0]
         num_attrs = X.shape[1]
 
         x_synthetic = np.zeros((majority_num - minority_num, num_attrs))
@@ -260,34 +260,35 @@ class DataResampler:
     
 if __name__ == '__main__':
     data_path = "G:/OneDrive - teleworm/code/4research/python/projects/imbalanced/datasets/german/german.csv"
-    from DataTool import DataLoader
+    # from DataTool import DataLoader
     import time
-    data_loader = DataLoader()
+    # data_loader = DataLoader()
     data_resampler = DataResampler()
     
-    data_loader.info()
-    data_resampler.info()
+    # data_loader.info()
+    # data_resampler.info()
 
     # train_df = data_loader.load_csv_to_pandas(data_path)
     # print(train_df.shape)
     from sklearn.datasets import make_classification
-    toy_X, toy_y  = make_classification(n_samples=50000, n_features=10, n_informative=2,
+    toy_X, toy_y  = make_classification(n_samples=20000, n_features=10, n_informative=2,
                            n_redundant=0, n_repeated=0, n_classes=2,
                            n_clusters_per_class=1,
                            weights=[0.1, 0.9],
                            class_sep=0.8, random_state=0)
     
     print('Original dataset shape %s' % Counter(toy_y))
-    X_resampled_ros, y_resampled_ros = data_resampler.random_over_sampling(toy_X, toy_y)
+    # X_resampled_ros, y_resampled_ros = data_resampler.random_over_sampling(toy_X, toy_y)
     
     
     # start_time = time.time()
     # X_resampled_ads, y_resampled_ads = data_resampler.adaptive_smote(toy_X, toy_y)
     # end_time = time.time()
     # print("time before improvement: {}".format(end_time-start_time))
-    
+    # 
     
     start_time = time.time()
     X_resampled_ads, y_resampled_ads = data_resampler.adaptive_smote_pd(toy_X, toy_y)
     end_time = time.time()
     print("time after improvement: {}".format(end_time-start_time))
+

@@ -24,7 +24,10 @@ class Rater():
     def generate_rating_report(self, y_test, y_predict, metrics=[]) -> str:
         from sklearn.metrics import precision_recall_fscore_support
         precision, recall, fscore, support = precision_recall_fscore_support(y_test, y_predict)
-        return "precision:{} recall:{}, fscore:{}, support:{}".format(precision, recall, fscore, support)
+        return precision, recall, fscore, support
+        # return "precision:{} recall:{}, fscore:{}, support:{}".format(precision, recall, fscore, support)
+    
+    
     
     
 
