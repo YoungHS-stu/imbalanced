@@ -271,7 +271,7 @@ if __name__ == '__main__':
     # train_df = data_loader.load_csv_to_pandas(data_path)
     # print(train_df.shape)
     from sklearn.datasets import make_classification
-    toy_X, toy_y  = make_classification(n_samples=20000, n_features=10, n_informative=2,
+    toy_X, toy_y  = make_classification(n_samples=100000, n_features=10, n_informative=2,
                            n_redundant=0, n_repeated=0, n_classes=2,
                            n_clusters_per_class=1,
                            weights=[0.1, 0.9],
@@ -286,9 +286,37 @@ if __name__ == '__main__':
     # end_time = time.time()
     # print("time before improvement: {}".format(end_time-start_time))
     # 
-    
+    # start_time = time.time()
+    # X_resampled_ads, y_resampled_ads = data_resampler.random_over_sampling(toy_X, toy_y)
+    # from sklearn.ensemble import RandomForestClassifier
+    # random_forest_classifier = RandomForestClassifier(n_estimators=50, random_state=1, n_jobs=1)
+    # random_forest_classifier.fit(X_resampled_ads, y_resampled_ads)
+    # end_time = time.time()
+    # print("1 jobs time after improvement: {}".format(end_time-start_time))
+    # 
+    # 
+    # start_time = time.time()
+    # X_resampled_ads, y_resampled_ads = data_resampler.random_over_sampling(toy_X, toy_y)
+    # from sklearn.ensemble import RandomForestClassifier
+    # random_forest_classifier = RandomForestClassifier(n_estimators=50, random_state=1, n_jobs=6)
+    # random_forest_classifier.fit(X_resampled_ads, y_resampled_ads)
+    # end_time = time.time()
+    # print("6 jobs time after improvement: {}".format(end_time-start_time))
+    # 
+    # start_time = time.time()
+    # X_resampled_ads, y_resampled_ads = data_resampler.random_over_sampling(toy_X, toy_y)
+    # from sklearn.ensemble import RandomForestClassifier
+    # random_forest_classifier = RandomForestClassifier(n_estimators=50, random_state=1, n_jobs=12)
+    # random_forest_classifier.fit(X_resampled_ads, y_resampled_ads)
+    # end_time = time.time()
+    # print("12 jobs time after improvement: {}".format(end_time-start_time))
+
+
     start_time = time.time()
-    X_resampled_ads, y_resampled_ads = data_resampler.adaptive_smote_pd(toy_X, toy_y)
+    X_resampled_ads, y_resampled_ads = data_resampler.random_over_sampling(toy_X, toy_y)
+    from sklearn.ensemble import RandomForestClassifier
+    random_forest_classifier = RandomForestClassifier(n_estimators=50, random_state=1, n_jobs=48)
+    random_forest_classifier.fit(X_resampled_ads, y_resampled_ads)
     end_time = time.time()
-    print("time after improvement: {}".format(end_time-start_time))
+    print("24 jobs time after improvement: {}".format(end_time-start_time))
 
