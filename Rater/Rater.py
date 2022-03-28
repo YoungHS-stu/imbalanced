@@ -21,10 +21,13 @@ class Rater():
         from sklearn.metrics import fbeta_score
         return fbeta_score(y_test, y_predict)
     
-    def generate_rating_report(self, y_test, y_predict, metrics=[]) -> str:
+    def generate_rating_report(self, y_test, y_predict, metrics=[]):
         from sklearn.metrics import precision_recall_fscore_support
+        from sklearn.metrics import roc_curve, auc
         precision, recall, fscore, support = precision_recall_fscore_support(y_test, y_predict)
-        return precision, recall, fscore, support
+        fpr, tpr, thresholds = roc_curve(y_test, y_predict)
+        auc_score = auc(fpr, tpr)
+        return precision, recall, fscore, support, auc_score
         # return "precision:{} recall:{}, fscore:{}, support:{}".format(precision, recall, fscore, support)
     
     

@@ -8,56 +8,56 @@ class Trainer:
         print("This is Trainer")
         
     # get y_predict and classifier
-    def extra_tree_classifier(self, X_train, X_test, y_train):
+    def extra_tree_classifier(self, X_train, X_test, y_train, *args, **kwargs):
         from sklearn.ensemble import ExtraTreesClassifier
         extra_tree_clf = ExtraTreesClassifier(n_estimators=250, random_state=1, n_jobs=12)
         extra_tree_clf.fit(X_train, y_train)
         return extra_tree_clf.predict(X_test), extra_tree_clf
         
 
-    def random_forest_classifier(self, X_train, X_test, y_train):
+    def random_forest_classifier(self, X_train, X_test, y_train, *args, **kwargs):
         from sklearn.ensemble import RandomForestClassifier
         random_forest_classifier = RandomForestClassifier(n_estimators=50, random_state=1, n_jobs=12)
         random_forest_classifier.fit(X_train, y_train)
         return random_forest_classifier.predict(X_test), random_forest_classifier
     
-    def gradient_boosting_classifier(self, X_train, X_test, y_train):
+    def gradient_boosting_classifier(self, X_train, X_test, y_train, *args, **kwargs):
         from sklearn.ensemble import GradientBoostingClassifier
         clf = GradientBoostingClassifier(n_estimators=50, random_state=1)
         clf.fit(X_train, y_train)
         return clf.predict(X_test), clf
 
-    def support_vector_machine(self, X_train, X_test, y_train):
+    def support_vector_machine(self, X_train, X_test, y_train, *args, **kwargs):
         from sklearn.svm import SVC
         clf = SVC(kernel='linear', C=1, gamma=1)
         clf.fit(X_train, y_train)
         return clf.predict(X_test), clf
     
-    def logistic_regression(self, X_train, X_test, y_train):
+    def logistic_regression(self, X_train, X_test, y_train, *args, **kwargs):
         from sklearn.linear_model import LogisticRegression
         clf = LogisticRegression(random_state=0, solver='lbfgs',n_jobs=12)
         clf.fit(X_train, y_train)
         return clf.predict(X_test), clf
 
-    def ada_boost_classifier(self, X_train, X_test, y_train):
+    def ada_boost_classifier(self, X_train, X_test, y_train, *args, **kwargs):
         from sklearn.ensemble import AdaBoostClassifier
         clf = AdaBoostClassifier(random_state=0, n_estimators=50)
         clf.fit(X_train, y_train)
         return clf.predict(X_test), clf
 
-    def decision_tree_classifier(self, X_train, X_test, y_train):
+    def decision_tree_classifier(self, X_train, X_test, y_train, *args, **kwargs):
         from sklearn.tree import DecisionTreeClassifier
         clf = DecisionTreeClassifier(random_state=0)
         clf.fit(X_train, y_train)
         return clf.predict(X_test), clf
     
-    def gaussian_nb_classifier(self, X_train, X_test, y_train):
+    def gaussian_nb_classifier(self, X_train, X_test, y_train, *args, **kwargs):
         from sklearn.naive_bayes import GaussianNB
         clf = GaussianNB()
         clf.fit(X_train, y_train)
         return clf.predict(X_test), clf
     
-    def voting_classifier(self, X_train, X_test, y_train):
+    def voting_classifier(self, X_train, X_test, y_train, *args, **kwargs):
         from sklearn.naive_bayes import GaussianNB
         from sklearn.ensemble import RandomForestClassifier
         from sklearn.linear_model import LogisticRegression

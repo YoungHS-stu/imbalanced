@@ -147,7 +147,7 @@ class DataPreprocessor:
 
     def onehotalize_data(self, data, **kwargs):
         print("making data categorical")
-        if   isinstance(data,   pd.DataFrame):
+        if isinstance(data,   pd.DataFrame):
             return pd.get_dummies(data)
         else:
             raise TypeError("Argument 'data' should be pd.Dataframe/n ")

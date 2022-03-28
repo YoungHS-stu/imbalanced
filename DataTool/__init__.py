@@ -6,6 +6,7 @@ from .DataPreprocessor import DataPreprocessor
 from .DataReducer      import DataReducer
 from .DataResampler    import DataResampler
 from .DataTransformer  import DataTransformer
+from .DataUtils        import DataUtils
 from .NumpyTool        import NumpyTool
 from .PandasTool       import PandasTool
 __all__ = [
@@ -17,6 +18,7 @@ __all__ = [
     "DataReducer",
     "DataResampler",
     "DataTransformer",
+    "DataUtils",
     "NumpyTool",
     "PandasTool"
 ]
