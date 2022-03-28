@@ -165,57 +165,5 @@ if __name__ == '__main__':
 
                     print("single process time {}".format(time.time()-start_time))
                     store_result_to_csv(q, experiment_date_time)
-                    
-                    
-                    
-                    
-                    
-                    # for resample_method in schema['resample_loop']:
-                    #     X_train, X_test, y_train, y_test = data_preprocessor.split_to_train_test(
-                    #         train_df_X, train_df_y,
-                    #         test_size=0.3, random_state=5)
-                    # 
-                    # 
-                    #     print("Resampling method is {}".format(resample_method.__name__))
-                    #     try:
-                    #         resample_start_time = time.time()
-                    #         resampled_train_df_X, resampled_train_df_y = resample_method(X_train, y_train)
-                    #         resample_time = time.time() - resample_start_time
-                    # 
-                    #         print("resampling time is {}".format(resample_time))
-                    #     except Exception as e:
-                    #         print("\nResampling method {} is not working, skip it. exception msg is {}".format(
-                    #             resample_method.__name__, e))
-                    #         continue
-                    # 
-                    # 
-                    #     for training_method in schema['training_loop']:
-                    #         try:
-                    #             print("Current training method is {}".format(training_method.__name__))
-                    #             train_start_time = time.time()
-                    #             y_predict, classifier = training_method(resampled_train_df_X, X_test, resampled_train_df_y)
-                    #             precision, recall, fscore, support, auc = rater.generate_rating_report(y_test, y_predict,
-                    #                                                                               metrics=["all"])
-                    #             gmean2 = (recall[0]*recall[1])**0.5
-                    #             train_time = time.time() - train_start_time
-                    #             print("training time is {}".format(train_time))
-                    #             print(
-                    #                 "precision:{} recall:{}, fscore:{}, support:{}, gmean:{}\n".format(precision, recall, fscore,
-                    #                                                                          support, gmean2))
-                    # 
-                    # 
-                    #             result_csv.loc[result_cnt] = [result_cnt, dataset_name ,resample_method.__name__,
-                    #                                           resample_time, training_method.__name__, train_time,
-                    #                                           precision[0], precision[1], recall[0], recall[1],
-                    #                                           fscore[0], fscore[1], support[0], support[1], gmean2
-                    #                                           ]
-                    #             result_cnt += 1
-                    #             result_csv.to_csv("./result/{}/result.csv".format(experiment_date_time), index=False, sep=',')
-                    # 
-                    #         except Exception as e:
-                    #             print("\nTrain method {} is not working, skip it. exception msg is {}".format(
-                    #                 training_method.__name__, e))
-                    #             continue
-                    # print("single process time {}".format(time.time()-start_time))
+                    print("******************All Jobs Done For Single-Process******************")
 
-    print("******************Jobs Done******************")    
