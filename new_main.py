@@ -16,6 +16,7 @@ glb_result_cnt = 0
 glb_result_csv = data_loader.load_csv_to_pandas("./result_template.csv")
 #! global var def end################
 
+experiment_date_time = datetime.datetime.now().strftime('%H.%M-%m-%d')
 
 def make_result_dir_and_copy_config(path: str):
     if(platform.system() == "Windows"):
@@ -74,6 +75,7 @@ def resample_and_train(q, id, train_df_X, train_df_y, resampler, trainer, args_d
                         resample_args=str(resampler[1]), train_args=str(trainer[1]))
         print(result)
         q.put(result)
+        return result
     except Exception as e:
         print("\nTrain method {} is not working, skip it. exception msg is {}".format(
             trainer[0].__name__, e))
@@ -83,7 +85,7 @@ def resample_and_train(q, id, train_df_X, train_df_y, resampler, trainer, args_d
 def append_one_record_to_csv():
     pass
 
-def store_result_to_csv(q, experiment_date_time):
+def store_result_to_csv(q):
     from dataclasses import asdict
 
     result_df = pd.DataFrame(columns=list(Result.__dataclass_fields__.keys()))
@@ -93,15 +95,23 @@ def store_result_to_csv(q, experiment_date_time):
 
     result_df.to_csv("./result/{}/result.csv".format(experiment_date_time), index=False, sep=',')
     
+def save_result_callback(result):
+    print("save_result_callback")
+    #check if a csv file exists, if not, create one
+    if not os.path.exists("./result/{}/result.csv".format(experiment_date_time)):
+        result_df = pd.DataFrame(columns=list(Result.__dataclass_fields__.keys()))
+        result_df.to_csv("./result/{}/result.csv".format(experiment_date_time), index=False, sep=',')
 
+    from dataclasses import asdict
+    result_df = pd.DataFrame(columns=list(Result.__dataclass_fields__.keys()))
+    result_df = result_df.append(asdict(result), ignore_index=True)
+    result_df.to_csv("./result/{}/result.csv".format(experiment_date_time), mode='a', index=False, header=False, sep=',')
 
+    
 if __name__ == '__main__':
 
     result_csv = data_loader.load_csv_to_pandas("./result_template.csv")
-    result_cnt = 0
     process_id = 0
-
-    experiment_date_time = datetime.datetime.now().strftime('%H.%M-%m-%d')
     make_result_dir_and_copy_config(str(experiment_date_time))
 
 
@@ -128,10 +138,12 @@ if __name__ == '__main__':
                 if multi_process:
                     #使用多线程
                     start_time = time.time()                    
-                    pool = mp.Pool(processes=500)
+                    pool = mp.Pool(processes=300)
                     q = mp.Manager().Queue()
                     for resampler, trainer, args in combinations:
-                        pool.apply_async(resample_and_train, args=(q, process_id, train_df_X, train_df_y, resampler, trainer, args))
+                        pool.apply_async(resample_and_train,
+                                         args=(q, process_id, train_df_X, train_df_y, resampler, trainer, args),
+                                         callback=save_result_callback)
                         process_id += 1
                     pool.close()
                     pool.join()
@@ -139,7 +151,7 @@ if __name__ == '__main__':
                     print("multi process time {}".format(time.time()-start_time))
                     print("number of processes: ", process_id)
                     
-                    store_result_to_csv(q, experiment_date_time)
+                    # store_result_to_csv(q, experiment_date_time)
                     print("******************All Jobs Done For Multi-Process******************")
 
                 else:
