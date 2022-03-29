@@ -42,12 +42,13 @@ def build_args_product_list(args_dict: dict):
         args_list.append(dict(zip(key_list, args_combination)))
     return args_list
 
-multi_process = False
+
+multi_process = True
 Test          = False
 
 global_args = {
     "if_shuffle": [True, False],
-    # "if_test":    [True, False],
+    "if_test":    [True, False, None],
 }
 
 global_args_list = build_args_product_list(global_args)
@@ -61,16 +62,17 @@ common_preprocess_methods = [
 
 resampler_dict = [
     #! over sampling
+    {'resampler': data_resampler.no_resampling},
+    {'resampler': data_resampler.random_over_sampling},
+    {'resampler': data_resampler.basic_smote},
+    {'resampler': data_resampler.adasyn},
     {
         'resampler': data_resampler.MWMOTE_ROS,
         'args': {
             'a': [0.1, 0.2, 0.3],
         }
     },
-    {'resampler': data_resampler.no_resampling},
-    {'resampler': data_resampler.random_over_sampling},
-    {'resampler': data_resampler.basic_smote},
-    {'resampler': data_resampler.adasyn},
+    {'resampler': data_resampler.MWMOTE},
     
     # ! under sampling
     {'resampler': data_resampler.random_under_sampling},
@@ -96,8 +98,8 @@ trainer_with_args_list = product_builder(trainer_dict, 'trainer')
 
 
 over_resample_methods = [
-    # data_resampler.no_resampling,
-    # data_resampler.random_over_sampling,
+    data_resampler.no_resampling,
+    data_resampler.random_over_sampling,
     # data_resampler.basic_smote,
     # data_resampler.adasyn,
     data_resampler.MWMOTE_ROS, 
@@ -111,7 +113,7 @@ over_resample_methods = [
 ]
 
 under_resample_methods = [
-    # data_resampler.random_under_sampling,
+    data_resampler.random_under_sampling,
     # data_resampler.instance_hardness_threshold,
     # data_resampler.near_miss,
     # data_resampler.tomek_links,

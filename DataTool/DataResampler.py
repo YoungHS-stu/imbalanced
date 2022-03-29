@@ -107,32 +107,32 @@ class DataResampler:
     
     def cluster_centroids(self,  X, y, *args, **kwargs):
         from imblearn.under_sampling import ClusterCentroids
-        return ClusterCentroids(random_state=0, n_jobs=12).fit_resample(X,y)
+        return ClusterCentroids(random_state=0, n_jobs=1).fit_resample(X,y)
     
     def near_miss(self,  X, y, *args, **kwargs):
         from imblearn.under_sampling import NearMiss
-        return NearMiss(n_jobs=12).fit_resample(X,y)
+        return NearMiss(n_jobs=1).fit_resample(X,y)
     
     def instance_hardness_threshold(self,  X, y, *args, **kwargs):
         from imblearn.under_sampling import InstanceHardnessThreshold
-        return InstanceHardnessThreshold(random_state=0, n_jobs=12).fit_resample(X,y)
+        return InstanceHardnessThreshold(random_state=0, n_jobs=1).fit_resample(X,y)
     
     
     def tomek_links(self,  X, y, *args, **kwargs):
         from imblearn.under_sampling import TomekLinks
-        return TomekLinks(n_jobs=12).fit_resample(X,y)
+        return TomekLinks(n_jobs=1).fit_resample(X,y)
     
     def edited_nearest_neighbours(self,  X, y, *args, **kwargs):
         from imblearn.under_sampling import EditedNearestNeighbours
-        return EditedNearestNeighbours(n_jobs=12).fit_resample(X,y)
+        return EditedNearestNeighbours(n_jobs=1).fit_resample(X,y)
     
     def repeated_edited_nearest_neighbours(self,  X, y, *args, **kwargs):
         from imblearn.under_sampling import RepeatedEditedNearestNeighbours
-        return RepeatedEditedNearestNeighbours(n_jobs=12).fit_resample(X,y)
+        return RepeatedEditedNearestNeighbours(n_jobs=1).fit_resample(X,y)
     
     def all_knn(self,  X, y, *args, **kwargs):
         from imblearn.under_sampling import AllKNN
-        return AllKNN(n_jobs=12).fit_resample(X,y)
+        return AllKNN(n_jobs=1).fit_resample(X,y)
     
     
     def random_over_sampling(self, X, y, *args, **kwargs):
@@ -142,31 +142,31 @@ class DataResampler:
  
     def basic_smote(self,  X, y, *args, **kwargs):
         from imblearn.over_sampling import SMOTE
-        return SMOTE(random_state=0, n_jobs=12).fit_resample(X, y)
+        return SMOTE(random_state=0, n_jobs=1).fit_resample(X, y)
     
     def bordered_smote(self, X, y, *args, **kwargs):
         from imblearn.over_sampling import BorderlineSMOTE
-        return BorderlineSMOTE(random_state=0, n_jobs=12).fit_resample(X, y)
+        return BorderlineSMOTE(random_state=0, n_jobs=1).fit_resample(X, y)
     
     def svm_smote(self, X, y, *args, **kwargs):
         from imblearn.over_sampling import SVMSMOTE
-        return SVMSMOTE(random_state=0, n_jobs=12).fit_resample(X, y)
+        return SVMSMOTE(random_state=0, n_jobs=1).fit_resample(X, y)
     
     def adasyn(self, X, y, *args, **kwargs):
         from imblearn.over_sampling import ADASYN
-        return ADASYN(random_state=0, n_jobs=12).fit_resample(X, y)
+        return ADASYN(random_state=0, n_jobs=1).fit_resample(X, y)
     
     def kmeans_smote(self, X, y, *args, **kwargs):
         from imblearn.over_sampling import KMeansSMOTE
-        return KMeansSMOTE(random_state=0, n_jobs=12).fit_resample(X, y)
+        return KMeansSMOTE(random_state=0, n_jobs=1).fit_resample(X, y)
     
     def smotenc(self, X, y, *args, **kwargs):
         from imblearn.over_sampling import SMOTENC
-        return SMOTENC(random_state=0, n_jobs=12).fit_resample(X, y)
+        return SMOTENC(random_state=0, n_jobs=1).fit_resample(X, y)
     
     def smoten(self, X, y, *args, **kwargs):
         from imblearn.over_sampling import SMOTEN
-        return SMOTEN(random_state=0, n_jobs=12).fit_resample(X, y)
+        return SMOTEN(random_state=0, n_jobs=1).fit_resample(X, y)
     
     def adaptive_smote(self, X, y ,*, N=100, K=5, C=3):
         from sklearn.neighbors import NearestNeighbors
@@ -396,7 +396,7 @@ if __name__ == '__main__':
     # start_time = time.time()
     # X_resampled_ads, y_resampled_ads = data_resampler.random_over_sampling(toy_X, toy_y)
     # from sklearn.ensemble import RandomForestClassifier
-    # random_forest_classifier = RandomForestClassifier(n_estimators=50, random_state=1, n_jobs=12)
+    # random_forest_classifier = RandomForestClassifier(n_estimators=50, random_state=1, n_jobs=1)
     # random_forest_classifier.fit(X_resampled_ads, y_resampled_ads)
     # end_time = time.time()
     # print("12 jobs time after improvement: {}".format(end_time-start_time))

@@ -10,14 +10,14 @@ class Trainer:
     # get y_predict and classifier
     def extra_tree_classifier(self, X_train, X_test, y_train, *args, **kwargs):
         from sklearn.ensemble import ExtraTreesClassifier
-        extra_tree_clf = ExtraTreesClassifier(n_estimators=250, random_state=1, n_jobs=12)
+        extra_tree_clf = ExtraTreesClassifier(n_estimators=250, random_state=1, n_jobs=1)
         extra_tree_clf.fit(X_train, y_train)
         return extra_tree_clf.predict(X_test), extra_tree_clf
         
 
     def random_forest_classifier(self, X_train, X_test, y_train, *args, **kwargs):
         from sklearn.ensemble import RandomForestClassifier
-        random_forest_classifier = RandomForestClassifier(n_estimators=50, random_state=1, n_jobs=12)
+        random_forest_classifier = RandomForestClassifier(n_estimators=50, random_state=1, n_jobs=1)
         random_forest_classifier.fit(X_train, y_train)
         return random_forest_classifier.predict(X_test), random_forest_classifier
     
@@ -35,7 +35,7 @@ class Trainer:
     
     def logistic_regression(self, X_train, X_test, y_train, *args, **kwargs):
         from sklearn.linear_model import LogisticRegression
-        clf = LogisticRegression(random_state=0, solver='lbfgs',n_jobs=12)
+        clf = LogisticRegression(random_state=0, solver='lbfgs',n_jobs=1)
         clf.fit(X_train, y_train)
         return clf.predict(X_test), clf
 

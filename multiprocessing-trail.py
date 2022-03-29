@@ -1,4 +1,5 @@
 from multiprocessing import Process, Queue
+import multiprocessing
 import time
 def do_sum(q,l):
     q.put(sum(l))
@@ -56,8 +57,17 @@ def run__pool():  # main process
         outputs = p.map(func2, process_args)
     print(f'| outputs: {outputs}    TimeUsed: {time.time() - start_time:.1f}    \n')
 
-
+def worker(input):
+    print(f'input: {input}')
+    time.sleep(1)
+    return input
 
 if __name__=='__main__':
     # main()
-    run__pool()
+    pool = multiprocessing.Pool(30)
+    queue = multiprocessing.Queue()
+    for i in range(100):
+        pool.apply_async(worker, (i,))
+    pool.close()
+    pool.join()
+    

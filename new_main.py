@@ -133,19 +133,45 @@ if __name__ == '__main__':
                 if multi_process:
                     #使用多线程
                     import os
+                    import subprocess
                     start_time = time.time()
-                    q = mp.Queue()
-                    process_list = []
+                    # q = mp.Queue()
+                    # process_list = []
+                    # for resampler, trainer, args in combinations:
+                    #     p = mp.Process(target=resample_and_train,
+                    #                    args=(q, process_id, train_df_X, train_df_y, resampler, trainer, args))
+                    #     #! 添加之前看看python进程数，不能太多
+                    #     while True:
+                    #         process_cnt = int(subprocess.check_output("ps -ef | grep python | wc -l",shell=True))
+                    #         if process_cnt < 20:
+                    #             print(f"process cnt is {process_cnt}, continue working")
+                    #             break
+                    #         elif 20 < process_cnt < 30:
+                    #             print(f"process cnt is {process_cnt}, sleep for 1s")
+                    #             time.sleep(1)
+                    #             continue
+                    #         elif process_cnt > 30:
+                    #             print(f"process cnt is {process_cnt}, sleep for 5s")
+                    #             time.sleep(5)
+                    #             continue
+                    # 
+                    #         
+                    #     p.start()
+                    #     process_list.append(p)
+                    #     process_id += 1
+                    # 
+                    # for p in process_list:
+                    #     p.join()
+                    
+                    pool = mp.Pool(processes=500)
+                    q = mp.Manager().Queue()
                     for resampler, trainer, args in combinations:
-                        p = mp.Process(target=resample_and_train,
-                                       args=(q, process_id, train_df_X, train_df_y, resampler, trainer, args))
-                        # 看看能不能在这里加限制
-                        p.start()
-                        process_list.append(p)
+                        pool.apply_async(resample_and_train, args=(q, process_id, train_df_X, train_df_y, resampler, trainer, args))
                         process_id += 1
-    
-                    for p in process_list:
-                        p.join()
+                    pool.close()
+                    pool.join()
+                        
+                    
     
                     print("multi process time {}".format(time.time()-start_time))
                     print("number of processes: ", process_id)
