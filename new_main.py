@@ -108,61 +108,26 @@ if __name__ == '__main__':
     for schema in data_process_schemes:
         dataset_name = schema['name']
         train_df = data_loader.load_csv_to_pandas(schema['dataset'])
-        # print(train_df.isna().sum())
-
         for clean_procedures in schema['clean_loop']:
             for each_clean in clean_procedures:
                 print("Cleaning method is {}".format(each_clean[0].__name__))
                 train_df = each_clean[0](train_df, **each_clean[1])
             
-            # print(train_df.isna().sum())
             train_df_X, train_df_y = data_preprocessor.split_to_x_and_y_in_pandas(train_df, y_column_name="label")      
             for preprocess_procedures in schema['preprocess_loop']:
                 for each_preprocess in preprocess_procedures:
                     print("Preprocess method is {}".format(each_preprocess[0].__name__))
 
                     train_df_X = each_preprocess[0](train_df_X, **each_preprocess[1])
-
                 resample_list    = schema['resample_loop']
                 train_list       = schema['training_loop']
                 args_list        = schema['global_args_loop']
                 combinations = list(product(resample_list, train_list, args_list)) #[(resampler, trainer, args)...]
                 print(f"number of combinations: ", (len(combinations)))
 
-                
                 if multi_process:
                     #使用多线程
-                    import os
-                    import subprocess
-                    start_time = time.time()
-                    # q = mp.Queue()
-                    # process_list = []
-                    # for resampler, trainer, args in combinations:
-                    #     p = mp.Process(target=resample_and_train,
-                    #                    args=(q, process_id, train_df_X, train_df_y, resampler, trainer, args))
-                    #     #! 添加之前看看python进程数，不能太多
-                    #     while True:
-                    #         process_cnt = int(subprocess.check_output("ps -ef | grep python | wc -l",shell=True))
-                    #         if process_cnt < 20:
-                    #             print(f"process cnt is {process_cnt}, continue working")
-                    #             break
-                    #         elif 20 < process_cnt < 30:
-                    #             print(f"process cnt is {process_cnt}, sleep for 1s")
-                    #             time.sleep(1)
-                    #             continue
-                    #         elif process_cnt > 30:
-                    #             print(f"process cnt is {process_cnt}, sleep for 5s")
-                    #             time.sleep(5)
-                    #             continue
-                    # 
-                    #         
-                    #     p.start()
-                    #     process_list.append(p)
-                    #     process_id += 1
-                    # 
-                    # for p in process_list:
-                    #     p.join()
-                    
+                    start_time = time.time()                    
                     pool = mp.Pool(processes=500)
                     q = mp.Manager().Queue()
                     for resampler, trainer, args in combinations:
@@ -170,9 +135,7 @@ if __name__ == '__main__':
                         process_id += 1
                     pool.close()
                     pool.join()
-                        
                     
-    
                     print("multi process time {}".format(time.time()-start_time))
                     print("number of processes: ", process_id)
                     
@@ -187,7 +150,6 @@ if __name__ == '__main__':
                     for resampler, trainer, args in combinations:
                         resample_and_train(q, process_id, train_df_X, train_df_y, resampler, trainer, args)
                         process_id += 1
-
 
                     print("single process time {}".format(time.time()-start_time))
                     store_result_to_csv(q, experiment_date_time)
