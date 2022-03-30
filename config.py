@@ -43,48 +43,48 @@ def build_args_product_list(args_dict: dict):
     return args_list
 
 
+# multi_process = False
 multi_process = True
 Test          = False
 
 global_args = {
-    "if_shuffle": [True, False],
-    "if_test":    [True, False, None],
+    "if_shuffle": [True],
+    # "if_test":    [True, False, None],
 }
 
 global_args_list = build_args_product_list(global_args)
 
-common_preprocess_methods = [
-    data_preprocessor.process_repeated_single_value,
-    data_preprocessor.process_extreme_value_by_columns,
-    data_preprocessor.normalize_data,
-    data_preprocessor.onehotalize_data
-]
 
 resampler_dict = [
-    #! over sampling
     {'resampler': data_resampler.no_resampling},
-    {'resampler': data_resampler.random_over_sampling},
-    {'resampler': data_resampler.basic_smote},
-    {'resampler': data_resampler.adasyn},
+    
+    #! over sampling
     {
-        'resampler': data_resampler.MWMOTE_ROS,
+        'resampler': data_resampler.MWMote_ROS_RUS_MIX_LLR,
         'args': {
-            'a': [0.1, 0.2, 0.3],
+            'a_ros': [0.5, 1, 1.5, 2],
+            'a_rus': [0.5, 1, 1.5, 2],
+            'i_ros': [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9],
         }
     },
-    {'resampler': data_resampler.MWMOTE},
-    
+    # {'resampler': data_resampler.random_over_sampling},
+    # {'resampler': data_resampler.basic_smote},
+    # {'resampler': data_resampler.bordered_smote},
+    # {'resampler': data_resampler.adasyn},
+    # {'resampler': data_resampler.MWMOTE},
+
     # ! under sampling
-    {'resampler': data_resampler.random_under_sampling},
-    {'resampler': data_resampler.instance_hardness_threshold},
+    # {'resampler': data_resampler.random_under_sampling},
+    # {'resampler': data_resampler.instance_hardness_threshold},
+    # {'resampler': data_resampler.near_miss},
+    # {'resampler': data_resampler.tomek_links},
+    # {'resampler': data_resampler.one_sided_selection},
 
 ]
 
 resampler_with_args_list = product_builder(resampler_dict, 'resampler')
-
-        
 trainer_dict = [
-    {'trainer': trainer.gaussian_nb_classifier, 'args': {'msg': ['Gaussian Naive Bayes', 'hello']}},
+    {'trainer': trainer.gaussian_nb_classifier},
     {'trainer': trainer.extra_tree_classifier},
     {'trainer': trainer.decision_tree_classifier},
     {'trainer': trainer.voting_classifier},
@@ -92,7 +92,16 @@ trainer_dict = [
     {'trainer': trainer.logistic_regression},
     {'trainer': trainer.gradient_boosting_classifier},
     {'trainer': trainer.ada_boost_classifier},
+    {'trainer': trainer.bagging_tree},
+    {'trainer': trainer.bagging_lr},
+
+    # {'trainer': trainer.bagging_classifier, 'args': {'base_classifier': ['lr','tree']}},
+    # {'trainer': trainer.lgbm_classifier},
+    # {'trainer': trainer.xgboost_classifier},
+    # {'trainer': trainer.support_vector_machine},
 ]
+
+        
 
 trainer_with_args_list = product_builder(trainer_dict, 'trainer')
 
@@ -137,6 +146,9 @@ data_process_schemes = [
         # 'dataset': './datasets/cs-train/cs-train.csv',
         'name': 'german',
         'dataset': './datasets/german/german.csv',
+        
+        # 'name': 'car',
+        # 'dataset': './datasets/car/train.csv',
         'clean_loop': [
             #! 第一种清洗流程， 直接删除
             [
@@ -167,8 +179,8 @@ data_process_schemes = [
             #     (data_preprocessor.onehotalize_data, {})
             # ]
         ],
-        'resample_loop': resampler_with_args_list,
-        'training_loop': trainer_with_args_list,
+        'resample_loop':    resampler_with_args_list,
+        'training_loop':    trainer_with_args_list,
         'global_args_loop': global_args_list
     },
     # {

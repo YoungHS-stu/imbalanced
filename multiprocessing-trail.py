@@ -63,12 +63,15 @@ def worker(input):
     print(f'input: {input} finished')
     return input
 
+def save_data(data):
+    print(f'{data} saved')
+
 if __name__=='__main__':
     # main()
-    pool = multiprocessing.Pool(20)
+    pool = multiprocessing.Pool(5)
     queue = multiprocessing.Queue()
-    for i in range(20):
-        res = pool.apply_async(worker, (i,))
+    for i in range(10):
+        res = pool.apply_async(worker, (i,), callback=save_data)
     
     pool.close()
     

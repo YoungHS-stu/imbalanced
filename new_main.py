@@ -73,7 +73,7 @@ def resample_and_train(q, id, train_df_X, train_df_y, resampler, trainer, args_d
                         fscore=fscore[0], support=support[0], auc=auc, gmean=gmean2, shuffle=if_shuffle,
                         original_maj_min=f'{maj_cnt}-{min_cnt}', resampled_maj_min=f'{resampled_maj}-{resampled_min}',
                         resample_args=str(resampler[1]), train_args=str(trainer[1]))
-        print(result)
+        # print(result)
         q.put(result)
         return result
     except Exception as e:
@@ -96,7 +96,7 @@ def store_result_to_csv(q):
     result_df.to_csv("./result/{}/result.csv".format(experiment_date_time), index=False, sep=',')
     
 def save_result_callback(result):
-    print("save_result_callback")
+    print(result)
     #check if a csv file exists, if not, create one
     if not os.path.exists("./result/{}/result.csv".format(experiment_date_time)):
         result_df = pd.DataFrame(columns=list(Result.__dataclass_fields__.keys()))
@@ -134,11 +134,10 @@ if __name__ == '__main__':
                 args_list        = schema['global_args_loop']
                 combinations = list(product(resample_list, train_list, args_list)) #[(resampler, trainer, args)...]
                 print(f"number of combinations: ", (len(combinations)))
-
                 if multi_process:
                     #使用多线程
                     start_time = time.time()                    
-                    pool = mp.Pool(processes=300)
+                    pool = mp.Pool(processes=200)
                     q = mp.Manager().Queue()
                     for resampler, trainer, args in combinations:
                         pool.apply_async(resample_and_train,
