@@ -1,3 +1,4 @@
+import datetime
 from itertools import product
 from collections import OrderedDict
 
@@ -19,7 +20,6 @@ trainer = Trainer()
 rater = Rater()
 painter = Painter()
 data_utils = DataUtils()
-
 
 def product_builder(list_dict, name: str):
     with_args_list = []
@@ -45,51 +45,47 @@ def build_args_product_list(args_dict: dict):
 
 # multi_process = False
 multi_process = True
-Test          = False
+# result_folder = datetime.datetime.now().strftime('%H.%M-%m-%d')
+result_folder = 'car_base'
 
 global_args = {
     "if_shuffle": [True],
     # "if_test":    [True, False, None],
 }
 
-global_args_list = build_args_product_list(global_args)
-
-
 resampler_dict = [
     {'resampler': data_resampler.no_resampling},
     
     #! over sampling
-    {
-        'resampler': data_resampler.MWMote_ROS_RUS_MIX_LLR,
-        'args': {
-            'a_ros': [0.5, 1, 1.5, 2],
-            'a_rus': [0.5, 1, 1.5, 2],
-            'i_ros': [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9],
-        }
-    },
-    # {'resampler': data_resampler.random_over_sampling},
-    # {'resampler': data_resampler.basic_smote},
-    # {'resampler': data_resampler.bordered_smote},
-    # {'resampler': data_resampler.adasyn},
-    # {'resampler': data_resampler.MWMOTE},
+    # {
+    #     'resampler': data_resampler.MWMote_ROS_RUS_MIX_LLR,
+    #     'args': {
+    #         'a_ros': [0.5, 1, 1.5, 2],
+    #         'a_rus': [0.5, 1, 1.5, 2],
+    #         'i_ros': [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9],
+    #     }
+    # },
+    {'resampler': data_resampler.random_over_sampling},
+    {'resampler': data_resampler.basic_smote},
+    {'resampler': data_resampler.bordered_smote},
+    {'resampler': data_resampler.adasyn},
+    {'resampler': data_resampler.MWMOTE},
 
-    # ! under sampling
-    # {'resampler': data_resampler.random_under_sampling},
-    # {'resampler': data_resampler.instance_hardness_threshold},
-    # {'resampler': data_resampler.near_miss},
-    # {'resampler': data_resampler.tomek_links},
-    # {'resampler': data_resampler.one_sided_selection},
+    #! under sampling
+    {'resampler': data_resampler.random_under_sampling},
+    {'resampler': data_resampler.instance_hardness_threshold},
+    {'resampler': data_resampler.near_miss},
+    {'resampler': data_resampler.tomek_links},
+    {'resampler': data_resampler.one_sided_selection},
 
 ]
-
-resampler_with_args_list = product_builder(resampler_dict, 'resampler')
 trainer_dict = [
+    {'trainer': trainer.logistic_regression},
     {'trainer': trainer.gaussian_nb_classifier},
     {'trainer': trainer.extra_tree_classifier},
     {'trainer': trainer.decision_tree_classifier},
     {'trainer': trainer.voting_classifier},
     {'trainer': trainer.random_forest_classifier},
-    {'trainer': trainer.logistic_regression},
     {'trainer': trainer.gradient_boosting_classifier},
     {'trainer': trainer.ada_boost_classifier},
     {'trainer': trainer.bagging_tree},
@@ -101,54 +97,22 @@ trainer_dict = [
     # {'trainer': trainer.support_vector_machine},
 ]
 
-        
+resampler_with_args_list = product_builder(resampler_dict, 'resampler')
 
 trainer_with_args_list = product_builder(trainer_dict, 'trainer')
 
+global_args_list = build_args_product_list(global_args)
 
-over_resample_methods = [
-    data_resampler.no_resampling,
-    data_resampler.random_over_sampling,
-    # data_resampler.basic_smote,
-    # data_resampler.adasyn,
-    data_resampler.MWMOTE_ROS, 
-    # data_resampler.MWMOTE_RUS,
-    # data_resampler.MWMOTE
-    # data_resampler.adaptive_smote_pd,
-    # data_resampler.kmeans_smote,
-    # data_resampler.bordered_smote,
-    # data_resampler.smoten, #!只用在类别数据
-    # data_resampler.smotenc, #!用在类别、连续数据
-]
-
-under_resample_methods = [
-    data_resampler.random_under_sampling,
-    # data_resampler.instance_hardness_threshold,
-    # data_resampler.near_miss,
-    # data_resampler.tomek_links,
-    # data_resampler.edited_nearest_neighbours,
-    # data_resampler.all_knn,
-]
-
-time_consuming_resample_methods = [
-    # data_resampler.svm_smote, #!非常耗时
-    data_resampler.no_resampling,
-    data_resampler.random_under_sampling,
-    data_resampler.random_over_sampling,
-    data_resampler.all_knn,
-    data_resampler.repeated_edited_nearest_neighbours,  # !很耗时
-    # data_resampler.cluster_centroids,  # !非常耗时
-]
 
 data_process_schemes = [
     {
         # 'name': 'cs-train',
         # 'dataset': './datasets/cs-train/cs-train.csv',
-        'name': 'german',
-        'dataset': './datasets/german/german.csv',
-        
-        # 'name': 'car',
-        # 'dataset': './datasets/car/train.csv',
+        # 'name': 'german',
+        # 'dataset': './datasets/german/german.csv',
+        # 
+        'name': 'car',
+        'dataset': './datasets/car/train.csv',
         'clean_loop': [
             #! 第一种清洗流程， 直接删除
             [
@@ -170,8 +134,8 @@ data_process_schemes = [
             [
                 (data_preprocessor.process_repeated_single_value,{}),
                 (data_preprocessor.process_extreme_value_by_columns,{"columns": ["all"]}),
-                (data_preprocessor.normalize_data,{"method": "z-score"}),
-                (data_preprocessor.onehotalize_data, {})
+                # (data_preprocessor.normalize_data,{"method": "z-score"}),
+                # (data_preprocessor.onehotalize_data, {})
             ],
             # [
             #     (data_preprocessor.process_repeated_single_value,{}),
@@ -182,52 +146,5 @@ data_process_schemes = [
         'resample_loop':    resampler_with_args_list,
         'training_loop':    trainer_with_args_list,
         'global_args_loop': global_args_list
-    },
-    # {
-    #     'name': 'cs-train.csv',
-    #     'dataset': './datasets/cs-train/cs-train.csv',
-    #     'clean_loop': [
-    #         #! 第一种清洗流程， 直接删除
-    #         [
-    #             (data_cleaner.clean_nan_value, {})
-    #         ],
-    #     ],
-    #     'preprocess_loop': [
-    #         [
-    #             # (data_preprocessor.process_repeated_single_value,{}),
-    #             # (data_preprocessor.process_extreme_value_by_columns,{"columns": ["all"]}),
-    #             # (data_preprocessor.normalize_data,{"method": "z-score"}),
-    #             (data_preprocessor.onehotalize_data,{})            
-    #         ],
-    #         [
-    #             (data_preprocessor.process_repeated_single_value,{}),
-    #             (data_preprocessor.normalize_data, {"method": "min-max"}),
-    #             (data_preprocessor.onehotalize_data,{})            
-    #         ]
-    #     ],
-    #     'resample_loop': over_resample_methods,
-    #     'training_loop': [
-    #         trainer.logistic_regression,
-    #         trainer.gradient_boosting_classifier,
-    #         trainer.ada_boost_classifier,
-    #     ]
-    # }
+    }
 ]
-
-
-# make_combinations
-dataset_combinations = []
-for datasets_scheme in data_process_schemes:
-    dataset_combinations.append(
-        OrderedDict(
-            dataset=datasets_scheme['dataset'],
-            combinations=list(product(
-                datasets_scheme['clean_loop'],
-                datasets_scheme['preprocess_loop'],
-                datasets_scheme['resample_loop'],
-                datasets_scheme['training_loop'],
-            ))
-        )
-    )
-    
-

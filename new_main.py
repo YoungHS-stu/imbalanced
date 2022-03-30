@@ -1,12 +1,11 @@
 from collections import Counter
 import pandas as pd
 import numpy as np
-import datetime
+
 import time
 import os
 import platform
 from Result import Result
-from itertools import product
 
 import multiprocessing as mp
 from config import *
@@ -16,8 +15,7 @@ glb_result_cnt = 0
 glb_result_csv = data_loader.load_csv_to_pandas("./result_template.csv")
 #! global var def end################
 
-experiment_date_time = datetime.datetime.now().strftime('%H.%M-%m-%d')
-
+result_folder = result_folder
 def make_result_dir_and_copy_config(path: str):
     if(platform.system() == "Windows"):
         print("os is windows, path is {}".format(path))
@@ -32,7 +30,6 @@ def make_result_dir_and_copy_config(path: str):
 def resample_and_train(q, id, train_df_X, train_df_y, resampler, trainer, args_dict):
     
     if_shuffle = args_dict.get("if_shuffle", False)
-    if_test    = args_dict.get("if_test",    False)
     maj_cnt = train_df_X[train_df_y==0].shape[0]
     min_cnt = train_df_X.shape[0] - maj_cnt
     X_train, X_test, y_train, y_test = data_preprocessor.split_to_train_test(
@@ -93,26 +90,26 @@ def store_result_to_csv(q):
         result = q.get()
         result_df = result_df.append(asdict(result), ignore_index=True)
 
-    result_df.to_csv("./result/{}/result.csv".format(experiment_date_time), index=False, sep=',')
+    result_df.to_csv("./result/{}/result.csv".format(result_folder), index=False, sep=',')
     
 def save_result_callback(result):
     print(result)
     #check if a csv file exists, if not, create one
-    if not os.path.exists("./result/{}/result.csv".format(experiment_date_time)):
+    if not os.path.exists("./result/{}/result.csv".format(result_folder)):
         result_df = pd.DataFrame(columns=list(Result.__dataclass_fields__.keys()))
-        result_df.to_csv("./result/{}/result.csv".format(experiment_date_time), index=False, sep=',')
+        result_df.to_csv("./result/{}/result.csv".format(result_folder), index=False, sep=',')
 
     from dataclasses import asdict
     result_df = pd.DataFrame(columns=list(Result.__dataclass_fields__.keys()))
     result_df = result_df.append(asdict(result), ignore_index=True)
-    result_df.to_csv("./result/{}/result.csv".format(experiment_date_time), mode='a', index=False, header=False, sep=',')
+    result_df.to_csv("./result/{}/result.csv".format(result_folder), mode='a', index=False, header=False, sep=',')
 
     
 if __name__ == '__main__':
 
     result_csv = data_loader.load_csv_to_pandas("./result_template.csv")
     process_id = 0
-    make_result_dir_and_copy_config(str(experiment_date_time))
+    make_result_dir_and_copy_config(str(result_folder))
 
 
     for schema in data_process_schemes:
@@ -123,7 +120,7 @@ if __name__ == '__main__':
                 print("Cleaning method is {}".format(each_clean[0].__name__))
                 train_df = each_clean[0](train_df, **each_clean[1])
             
-            train_df_X, train_df_y = data_preprocessor.split_to_x_and_y_in_pandas(train_df, y_column_name="label")      
+            train_df_X, train_df_y = data_preprocessor.split_to_x_and_y_in_pandas(train_df, y_column_name="label")
             for preprocess_procedures in schema['preprocess_loop']:
                 for each_preprocess in preprocess_procedures:
                     print("Preprocess method is {}".format(each_preprocess[0].__name__))
@@ -150,7 +147,7 @@ if __name__ == '__main__':
                     print("multi process time {}".format(time.time()-start_time))
                     print("number of processes: ", process_id)
                     
-                    # store_result_to_csv(q, experiment_date_time)
+                    # store_result_to_csv(q, result_folder)
                     print("******************All Jobs Done For Multi-Process******************")
 
                 else:
@@ -163,6 +160,6 @@ if __name__ == '__main__':
                         process_id += 1
 
                     print("single process time {}".format(time.time()-start_time))
-                    store_result_to_csv(q, experiment_date_time)
+                    store_result_to_csv(q, result_folder)
                     print("******************All Jobs Done For Single-Process******************")
 
