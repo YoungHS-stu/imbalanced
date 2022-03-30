@@ -48,6 +48,7 @@ multi_process = True
 # result_folder = datetime.datetime.now().strftime('%H.%M-%m-%d')
 result_folder = 'car_base'
 
+
 global_args = {
     "if_shuffle": [True],
     # "if_test":    [True, False, None],
@@ -90,11 +91,6 @@ trainer_dict = [
     {'trainer': trainer.ada_boost_classifier},
     {'trainer': trainer.bagging_tree},
     {'trainer': trainer.bagging_lr},
-
-    # {'trainer': trainer.bagging_classifier, 'args': {'base_classifier': ['lr','tree']}},
-    # {'trainer': trainer.lgbm_classifier},
-    # {'trainer': trainer.xgboost_classifier},
-    # {'trainer': trainer.support_vector_machine},
 ]
 
 resampler_with_args_list = product_builder(resampler_dict, 'resampler')
