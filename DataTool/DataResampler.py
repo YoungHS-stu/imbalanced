@@ -12,8 +12,8 @@ class DataResampler:
     def info(self):
         print("This is data resampler")
         
-    def ROS_with_Ratio(self, X, y, a=1.0):
-        # ! a>=1, a 越大， ros采样点越少
+    def ROS_with_Ratio(self, X, y, a=1.0, generate_num=None):
+        # ! a越大， ros采样点越少
         a = min(a,1)
         # y == 0, minority
         # y == 1, majority
@@ -24,8 +24,9 @@ class DataResampler:
         majority_num = X[y == 1].shape[0]
         attr_num     = X.shape[1]
         
+        if generate_num is None:
+            generate_num = min(int(majority_num - minority_num * a), minority_num)
         
-        generate_num = min(int(majority_num - minority_num * a), minority_num)
         x_resampled = np.zeros((generate_num, attr_num))
         y_resampled = np.zeros(generate_num)
         for i in range(generate_num):
@@ -34,8 +35,10 @@ class DataResampler:
 
         return np.concatenate((X, x_resampled), axis=0), np.concatenate((y, y_resampled), axis=0)
     
-    def RUS_with_Ratio(self, X, y, a=1.5):
+    def RUS_with_Ratio(self, X, y, a=1.5, delete_num=None):
         #! 直观的来说， 多数类欠采样后的大小为， a*少数类size
+        #! a越大， 留下来的越多
+        #! a越小， 留下来的越少
         # y == 0, minority
         # y == 1, majority
         if not isinstance(X, ndarray):
@@ -46,7 +49,10 @@ class DataResampler:
         majority_num = X[y == 1].shape[0]
         attr_num = X.shape[1]
 
-        x_more_remain_num   = min(int(minority_num * a), x_more.shape[0])
+        if delete_num is None:
+            x_more_remain_num   = min(int(minority_num * a), x_more.shape[0])
+        else:
+            x_more_remain_num = majority_num - delete_num
         x_resampled = np.zeros((x_more_remain_num, attr_num))
         y_resampled = np.ones(x_more_remain_num)
         for i in range(x_more_remain_num):
@@ -55,20 +61,49 @@ class DataResampler:
 
         return np.concatenate((x_resampled, x_less), axis=0), np.concatenate((y_resampled, y_less), axis=0)
     
-    def MWMote_ROS_RUS_1(self, X, y, a_ros=1.5, a_rus=1.5):
+    def MWMote_ROS_RUS_1(self, X, y, *args, **kwargs):
+        a_ros = kwargs.get('a_ros', 1.5)
+        a_rus = kwargs.get('a_rus', 1.5)
         from smote_variants import MWMOTE
-        X, y = self.ROS_with_Ratio(X, y, a_ros)
-        X, y = self.ROS_with_Ratio(X, y, a_rus)
+        majority_num = X[y == 1].shape[0]
+        minority_num = X[y == 0].shape[0]
+        imbalance_ratio_gap = (majority_num / minority_num) - 1
+        if a_ros + a_rus > imbalance_ratio_gap:
+            a_rus = imbalance_ratio_gap - a_ros - 1
+        
+        ros_generate_num = int(minority_num * a_ros)
+        rus_deleted_num  = int(minority_num * a_rus)
+        # mwmote_generate_num = int(minority_num * (imbalance_ratio_gap - a_ros - a_rus))
+        X, y = self.ROS_with_Ratio(X, y, generate_num=ros_generate_num)
+        X, y = self.RUS_with_Ratio(X, y, delete_num=rus_deleted_num)
         return MWMOTE().sample(X, y)
     
-    def MWMote_ROS_RUS_2(self, X, y, a_ros, a_rus, a_combine):
-        from smote_variants import MWMOTE
-        original_size = X.shape[0]
-        X_ros, y_ros = self.ROS_with_Ratio(X, y, a_ros)
+    def MWMote_ROS_RUS_MIX_LLR(self, X, y, **kwargs):
+        a_ros = kwargs.get('a_ros', 1.5)
+        a_rus = kwargs.get('a_rus', 1.5)
+        i     = kwargs.get('i_ros', 0.1)
         
+        import pandas as pd
+        #! get MWMOTE_ros
+        X_MWMOTE_ros, y_MWMOTE_ros = self.MWMOTE_ROS(X, y, a=a_ros)
+        a1 = pd.DataFrame(X_MWMOTE_ros)
+        b1 = pd.DataFrame(y_MWMOTE_ros)
+        MWMOTE_ros = pd.concat([a1, b1], axis=1)
         
-        X_rus, y_rus = self.RUS_with_Ratio(X, y, a_rus)
-
+        #! get MWMOTE_ros
+        X_MWMOTE_rus, y_MWMOTE_rus = self.MWMOTE_RUS(X, y, a=a_rus)
+        a2 = pd.DataFrame(X_MWMOTE_rus)
+        b2 = pd.DataFrame(y_MWMOTE_rus)
+        MWMOTE_rus = pd.concat([a2, b2], axis=1)
+        
+        #! combine
+        MWMOTE_ros_ = MWMOTE_ros.sample(frac=i,     replace=False, random_state=None, axis=0)
+        MWMOTE_rus_ = MWMOTE_rus.sample(frac=1 - i, replace=False, random_state=None, axis=0)
+        X_MWMOTE_ros_, y_MWMOTE_ros_ = MWMOTE_ros_.iloc[:, 0:-1], MWMOTE_ros_.iloc[:, -1]
+        X_MWMOTE_rus_, y_MWMOTE_rus_ = MWMOTE_rus_.iloc[:, 0:-1], MWMOTE_rus_.iloc[:, -1]
+        X_mix = pd.concat([X_MWMOTE_rus_, X_MWMOTE_ros_], axis=0)
+        y_mix = pd.concat([y_MWMOTE_rus_, y_MWMOTE_ros_], axis=0)
+        return X_mix.to_numpy(), y_mix.to_numpy()
 
     def no_resampling(self, X, y, *args, **kwargs):
         return X, y
@@ -117,6 +152,9 @@ class DataResampler:
         from imblearn.under_sampling import InstanceHardnessThreshold
         return InstanceHardnessThreshold(random_state=0, n_jobs=1).fit_resample(X,y)
     
+    def one_sided_selection(self,  X, y, *args, **kwargs):
+        from imblearn.under_sampling import OneSidedSelection
+        return OneSidedSelection(n_jobs=1).fit_resample(X,y)
     
     def tomek_links(self,  X, y, *args, **kwargs):
         from imblearn.under_sampling import TomekLinks
@@ -345,7 +383,7 @@ class DataResampler:
         return np.concatenate((X, x_synthetic), axis=0), np.concatenate((y, y_synthetic), axis=0)
     
   
-  
+    
   
   
 if __name__ == '__main__':
@@ -403,7 +441,8 @@ if __name__ == '__main__':
 
 
     start_time = time.time()
-    X_resampled, y_resampled = data_resampler.MWMOTE_ROS(toy_X, toy_y, 1.5)
+    args = {'a_ros': 1.5, 'a_rus': 2}
+    X_resampled, y_resampled = data_resampler.MWMote_ROS_RUS_1(toy_X, toy_y, **args)
     # from sklearn.ensemble import RandomForestClassifier
     # random_forest_classifier = RandomForestClassifier(n_estimators=50, random_state=1, n_jobs=48)
     # random_forest_classifier.fit(X_resampled, y_resampled)

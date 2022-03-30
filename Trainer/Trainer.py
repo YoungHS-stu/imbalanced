@@ -89,6 +89,20 @@ class Trainer:
         return clf.predict(X_test), clf
    
    
+    def bagging_lr(self, X_train, X_test, y_train, *args, **kwargs):
+        from sklearn.ensemble import BaggingClassifier
+        from sklearn.linear_model import LogisticRegression
+        clf = BaggingClassifier(LogisticRegression(tol=0.00000001, solver='lbfgs'), max_samples=0.5, max_features=0.5)
+        clf.fit(X_train, y_train)
+        return clf.predict(X_test), clf
+    
+    def bagging_tree(self, X_train, X_test, y_train, *args, **kwargs):
+        from sklearn.ensemble import BaggingClassifier
+        from sklearn.tree import DecisionTreeClassifier
+        clf = BaggingClassifier(base_estimator=DecisionTreeClassifier(random_state=0), n_estimators=50, random_state=1)
+        clf.fit(X_train, y_train)
+        return clf.predict(X_test), clf
+   
     def bagging_classifier(self, X_train, X_test, y_train, *args, **kwargs):
         from sklearn.ensemble import BaggingClassifier
         base_classifier = kwargs.get('base_classifier', 'lr')
