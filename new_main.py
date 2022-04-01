@@ -1,19 +1,16 @@
 from collections import Counter
 import pandas as pd
 import numpy as np
-
 import time
 import os
 import platform
 from Result import Result
-
 import multiprocessing as mp
 from config import *
 
 
-
 def make_result_dir_and_copy_config(path: str):
-    if(platform.system() == "Windows"):
+    if platform.system() == "Windows":
         print("os is windows, path is {}".format(path))
         os.system("mkdir .\\result\\{}".format(path))
         os.system("copy .\\config.py .\\result\\{}\\".format(path))
@@ -97,6 +94,8 @@ def save_result_callback(result):
     result_df = result_df.append(asdict(result), ignore_index=True)
     result_df.to_csv("./result/{}/result.csv".format(result_folder), mode='a', index=False, header=False, sep=',')
 
+def save_param_error_callback(param, result):
+    pass
     
 if __name__ == '__main__':
 
@@ -117,7 +116,7 @@ if __name__ == '__main__':
                     print("Preprocess method is {}".format(each_preprocess[0].__name__))
                     train_df_X = each_preprocess[0](train_df_X, **each_preprocess[1])
 
-                #! make combinations
+                # ! make combinations
                 resample_list  = schema['resample_loop']
                 train_list     = schema['training_loop']
                 args_list      = schema['global_args_loop']
@@ -125,13 +124,13 @@ if __name__ == '__main__':
                 print(f"number of combinations: ", (len(combinations)))
                 if multi_process:
                     # 使用多线程
-                    start_time = time.time()                    
                     pool = mp.Pool(processes=min(len(combinations)+3, 250))
                     q = mp.Manager().Queue()
                     for resampler, trainer, args in combinations:
                         pool.apply_async(resample_and_train,
                                          args=(q, process_id, train_df_X, train_df_y, resampler, trainer, args),
-                                         callback=save_result_callback)
+                                         callback=save_result_callback,
+                                         error_callback=save_param_error_callback)
                         process_id += 1
                     pool.close()
                     pool.join()
@@ -139,7 +138,6 @@ if __name__ == '__main__':
 
                 else:
                     # 使用单线程
-                    start_time = time.time()
                     from queue import Queue
                     q = Queue()
                     for resampler, trainer, args in combinations:
