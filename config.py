@@ -21,6 +21,7 @@ rater = Rater()
 painter = Painter()
 data_utils = DataUtils()
 
+# ! 0少1多, 0为POSITIVE, 1为NEGATIVE
 def product_builder(list_dict, name: str):
     with_args_list = []
     for item in list_dict:
@@ -45,41 +46,40 @@ def build_args_product_list(args_dict: dict):
 
 # multi_process = False
 multi_process = True
+
 # result_folder = datetime.datetime.now().strftime('%H.%M-%m-%d')
-result_folder = 'car_base'
+result_folder = 'cs_train_test_1'
 
 
 global_args = {
     "if_shuffle": [True],
-    # "if_test":    [True, False, None],
 }
 
 resampler_dict = [
-    {'resampler': data_resampler.no_resampling},
-    
+    # {'resampler': data_resampler.no_resampling},
     #! over sampling
-    # {
-    #     'resampler': data_resampler.MWMote_ROS_RUS_MIX_LLR,
-    #     'args': {
-    #         'a_ros': [0.5, 1, 1.5, 2],
-    #         'a_rus': [0.5, 1, 1.5, 2],
-    #         'i_ros': [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9],
-    #     }
-    # },
-    {'resampler': data_resampler.random_over_sampling},
-    {'resampler': data_resampler.basic_smote},
-    {'resampler': data_resampler.bordered_smote},
-    {'resampler': data_resampler.adasyn},
-    {'resampler': data_resampler.MWMOTE},
-
+    {
+        'resampler': data_resampler.MWMote_ROS_RUS_MIX_LLR,
+        'args': {
+            'a_ros': [0.5, 1, 1.5, 2, 2.5],
+            'a_rus': [0.5, 1, 1.5, 2, 2.5],
+            'i_ros': [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9],
+        }
+    },
+    # {'resampler': data_resampler.random_over_sampling},
+    # {'resampler': data_resampler.basic_smote},
+    # {'resampler': data_resampler.bordered_smote},
+    # {'resampler': data_resampler.adasyn},
+    # {'resampler': data_resampler.MWMOTE},
+    
     #! under sampling
-    {'resampler': data_resampler.random_under_sampling},
-    {'resampler': data_resampler.instance_hardness_threshold},
-    {'resampler': data_resampler.near_miss},
-    {'resampler': data_resampler.tomek_links},
-    {'resampler': data_resampler.one_sided_selection},
-
+    # {'resampler': data_resampler.random_under_sampling},
+    # {'resampler': data_resampler.instance_hardness_threshold},
+    # {'resampler': data_resampler.near_miss},
+    # {'resampler': data_resampler.tomek_links},
+    # {'resampler': data_resampler.one_sided_selection},
 ]
+
 trainer_dict = [
     {'trainer': trainer.logistic_regression},
     {'trainer': trainer.gaussian_nb_classifier},
@@ -102,42 +102,29 @@ global_args_list = build_args_product_list(global_args)
 
 data_process_schemes = [
     {
-        # 'name': 'cs-train',
-        # 'dataset': './datasets/cs-train/cs-train.csv',
+        'name': 'cs-train',
+        'dataset': './datasets/cs-train/cs-train.csv',
         # 'name': 'german',
         # 'dataset': './datasets/german/german.csv',
-        # 
-        'name': 'car',
-        'dataset': './datasets/car/train.csv',
+        # 'name': 'car',
+        # 'dataset': './datasets/car/train.csv',
+        # 'name': 'australia',
+        # 'dataset': './datasets/australia/australian.csv',
         'clean_loop': [
             #! 第一种清洗流程， 直接删除
             [
                 (data_cleaner.clean_nan_value, {})
             ],
-            # #! 第二种清洗流程
-            # [
-            #     (data_cleaner.clean_nan_value_by_column, {"columns": ['NumberOfDependents'], "methods": ['delete']}),
-            #     (data_cleaner.clean_nan_value_by_column, {"columns": ['MonthlyIncome'], "methods": ['mean']})
-            # ],
-            # #! 第三种清洗流程
-            # [
-            #     (data_cleaner.clean_nan_value_by_column, {"columns": ['NumberOfDependents'], "methods": ['delete']}),
-            #     (data_cleaner.clean_nan_value_by_column, {"columns": ['MonthlyIncome'], "methods": ['gaussian']})
-            # ]
 
         ],
         'preprocess_loop': [
             [
-                (data_preprocessor.process_repeated_single_value,{}),
-                (data_preprocessor.process_extreme_value_by_columns,{"columns": ["all"]}),
+                # (data_preprocessor.process_repeated_single_value,{}),
+                # (data_preprocessor.process_extreme_value_by_columns,{"columns": ["all"]}),
                 # (data_preprocessor.normalize_data,{"method": "z-score"}),
-                # (data_preprocessor.onehotalize_data, {})
+                (data_preprocessor.onehotalize_data, {})
             ],
-            # [
-            #     (data_preprocessor.process_repeated_single_value,{}),
-            #     (data_preprocessor.normalize_data, {"method": "min-max"}),
-            #     (data_preprocessor.onehotalize_data, {})
-            # ]
+
         ],
         'resample_loop':    resampler_with_args_list,
         'training_loop':    trainer_with_args_list,
