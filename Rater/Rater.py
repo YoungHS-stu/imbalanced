@@ -25,7 +25,7 @@ class Rater():
         from sklearn.metrics import precision_recall_fscore_support
         from sklearn.metrics import roc_curve, auc
         precision, recall, fscore, support = precision_recall_fscore_support(y_test, y_predict)
-        fpr, tpr, thresholds = roc_curve(y_test, y_predict)
+        fpr, tpr, thresholds = roc_curve(y_test, y_predict, pos_label=0)
         auc_score = auc(fpr, tpr)
         return precision, recall, fscore, support, auc_score
         # return "precision:{} recall:{}, fscore:{}, support:{}".format(precision, recall, fscore, support)

@@ -65,8 +65,8 @@ class DataResampler:
         a_ros = kwargs.get('a_ros', 1.5)
         a_rus = kwargs.get('a_rus', 1.5)
         from smote_variants import MWMOTE
-        majority_num = X[y == 1].shape[0]
         minority_num = X[y == 0].shape[0]
+        majority_num = X[y == 1].shape[0]
         imbalance_ratio_gap = (majority_num / minority_num) - 1
         if a_ros + a_rus > imbalance_ratio_gap:
             a_rus = imbalance_ratio_gap - a_ros - 1
@@ -133,8 +133,6 @@ class DataResampler:
         # X = X.astype(float)
         X, y = self.RUS_with_Ratio(X, y, 1.5)
         return MWMOTE().sample(X, y)
-    
-    
     
     def random_under_sampling(self,  X, y, *args, **kwargs):
         from imblearn.under_sampling import RandomUnderSampler
