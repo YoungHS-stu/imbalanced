@@ -151,7 +151,3 @@ if __name__ == '__main__':
     print(
         "precision:{} recall:{}, fscore:{}, support:{}\n".format(precision, recall, fscore,
                                                                  support))
-
-    RandomForestClassifier(n_estimators=40)
-    RandomForestClassifier(n_estimators=10, max_depth=3, min_samples_split=12, random_state=0)
-    
