@@ -21,7 +21,7 @@ def make_result_dir_and_copy_config(path: str):
 
 
 def resample_and_train(id, train_df_X, train_df_y, resampler, trainer, args_dict):
-    if_shuffle = args_dict.get("if_shuffle", False)
+    if_shuffle = args_dict.get("if_shuffle", True)
     save_cache = args_dict.get("save_cache", False)
     use_cache  = args_dict.get("use_cache", False)
     if_train = args_dict.get("if_train", True)
@@ -29,8 +29,6 @@ def resample_and_train(id, train_df_X, train_df_y, resampler, trainer, args_dict
     min_cnt = train_df_X.shape[0] - maj_cnt
     resampler_name = resampler[0].__name__
     trainer_name = trainer[0].__name__
-    # resampler = resampler_trainer[0]
-    # trainer_list = resampler_trainer[1]
     result_list = []
 
     # ! check if csv exists
@@ -179,8 +177,8 @@ if __name__ == '__main__':
                 else:
                     # 使用单线程
                     for resampler, trainer, args in combinations:
-                        result_list = resample_and_train(process_id, train_df_X, train_df_y, resampler, trainer, args)
-                        save_result_callback(result_list)
+                        result = resample_and_train(process_id, train_df_X, train_df_y, resampler, trainer, args)
+                        save_result_callback(result)
                         process_id += 1
                         print(process_id)
 

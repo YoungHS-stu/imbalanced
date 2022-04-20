@@ -1,6 +1,5 @@
 import datetime
 from itertools import product
-from collections import OrderedDict
 
 from DataTool import DataLoader
 from DataTool import DataCleaner
@@ -21,6 +20,7 @@ rater = Rater()
 painter = Painter()
 data_utils = DataUtils()
 
+
 # ! 0少1多, 0为POSITIVE, 1为NEGATIVE
 def product_builder(list_dict, name: str):
     with_args_list = []
@@ -32,8 +32,9 @@ def product_builder(list_dict, name: str):
             value_list = [item.get('args').get(key) for key in key_list]
             for args_combination in product(*value_list):
                 with_args_list.append([item.get(name), dict(zip(key_list, args_combination))])
-                
+
     return with_args_list
+
 
 def build_args_product_list(args_dict: dict):
     args_list = []
@@ -53,7 +54,6 @@ result_folder = 'dummy1'
 # result_folder = 'komek_iht_german'
 
 global_args = {
-    "if_shuffle": [True],
     "save_cache": [False],
     "use_cache":  [False],
     "if_train":   [True]
@@ -65,7 +65,6 @@ resampler_dict = [
     #     'args': {'a_ros': [1], 'a_rus': [0.5],'i_ros': [0.1, 0.6]}
     # },
 
-    
     # {'resampler': data_resampler.no_resampling},
     # # #! over sampling
     # {'resampler': data_resampler.random_over_sampling},
@@ -118,7 +117,7 @@ resampler_dict = [
 
 trainer_dict = [
     # {'trainer': trainer.dummy_train},
-    # {'trainer': trainer.logistic_regression},
+    {'trainer': trainer.logistic_regression},
     # {'trainer': trainer.gaussian_nb_classifier},
     # {'trainer': trainer.extra_tree_classifier},
     # {'trainer': trainer.decision_tree_classifier},
@@ -135,11 +134,8 @@ trainer_dict = [
 ]
 
 resampler_with_args_list = product_builder(resampler_dict, 'resampler')
-
 trainer_with_args_list = product_builder(trainer_dict, 'trainer')
-
 global_args_list = build_args_product_list(global_args)
-
 
 data_process_schemes = [
     {
@@ -151,6 +147,7 @@ data_process_schemes = [
         # 'dataset': './datasets/car/train.csv',
         # 'name': 'australia',
         # 'dataset': './datasets/australia/australian.csv',
+
         'clean_loop': [
             #! 第一种清洗流程， 直接删除
             [
