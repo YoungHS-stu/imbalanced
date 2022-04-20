@@ -28,6 +28,6 @@ def evaluate_base_line(baseline_csv_path, saved_csv_path):
      print('Finish evaluating baseline...')
 
 if __name__ == '__main__':
-    baseline_csv_path = './result/german_new_base/result.csv'
-    saved_csv_path    = './result/baseline/german-0406.csv'
+    baseline_csv_path = './result/car_new_base/result.csv'
+    saved_csv_path    = './result/baseline/car-0412.csv'
     evaluate_base_line(baseline_csv_path, saved_csv_path)

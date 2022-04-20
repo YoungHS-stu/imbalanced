@@ -5,13 +5,55 @@ from numpy import ndarray
 import numpy as np
 import random
 from collections import Counter
+from imblearn.under_sampling import CondensedNearestNeighbour, RepeatedEditedNearestNeighbours, EditedNearestNeighbours,\
+    ClusterCentroids, InstanceHardnessThreshold, OneSidedSelection, RandomUnderSampler, TomekLinks, NearMiss, AllKNN
+from imblearn.over_sampling import SMOTE, RandomOverSampler, ADASYN, SMOTENC, BorderlineSMOTE, SMOTEN, KMeansSMOTE, SVMSMOTE
+from imblearn.combine import SMOTEENN, SMOTETomek
+from .ResamplerImpl import InstanceThreshold, KomekLink
+from smote_variants import MWMOTE, Safe_Level_SMOTE, NRAS
+
 class DataResampler:
     def __init__(self):
         pass
     
     def info(self):
         print("This is data resampler")
-        
+    
+    def my_instance_threshold(self, X, y, *args, **kwargs):
+        komek_n = kwargs.get('komek_n', 1)
+        komek_k = kwargs.get('komek_k', 1)
+        return InstanceThreshold(random_state=1, komek_n=komek_n, komek_k=komek_k).fit_resample(X, y)
+    
+    def my_instance_threshold_rus(self, X, y, *args, **kwargs):
+        komek_n = kwargs.get('komek_n', 1)
+        komek_k = kwargs.get('komek_k', 1)
+        X_res, y_res = InstanceThreshold(random_state=1, komek_n=komek_n, komek_k=komek_k).fit_resample(X, y)
+        return RandomUnderSampler(random_state=0).fit_resample(X_res, y_res)
+    
+    def my_instance_threshold_ros(self, X, y, *args, **kwargs):
+        komek_n = kwargs.get('komek_n', 1)
+        komek_k = kwargs.get('komek_k', 1)
+        X_res, y_res = InstanceThreshold(random_state=1, komek_n=komek_n, komek_k=komek_k).fit_resample(X, y)
+        return RandomOverSampler(random_state=0).fit_resample(X_res, y_res)
+    
+    def komek_links(self,  X, y, *args, **kwargs):
+        komek_k = kwargs.get('komek_k', 1)
+        return KomekLink(komek_k=komek_k).fit_resample(X, y)
+    
+    def komek_rus(self, X, y, *args, **kwargs):
+        komek_k = kwargs.get('komek_k', 1)
+        X_komek, y_komek = KomekLink(komek_k=komek_k).fit_resample(X, y)
+        return RandomUnderSampler(random_state=0).fit_resample(X_komek, y_komek)
+    
+    def komek_ros(self, X, y, *args, **kwargs):
+        komek_k = kwargs.get('komek_k', 1)
+        X_komek, y_komek = KomekLink(komek_k=komek_k).fit_resample(X, y)
+        return RandomOverSampler(random_state=0).fit_resample(X_komek, y_komek)
+    def komek_iht(self, X, y, *args, **kwargs):
+        komek_k = kwargs.get('komek_k', 1)
+        X_komek, y_komek = KomekLink(komek_k=komek_k).fit_resample(X, y)
+        return InstanceHardnessThreshold(random_state=1).fit_resample(X_komek, y_komek)
+    
     def ROS_with_Ratio(self, X, y, a=1.0, generate_num=None):
         # ! a越大， ros采样点越少
         a = min(a,1)
@@ -109,7 +151,6 @@ class DataResampler:
         return X, y
 
     def MWMOTE_trans(self, X, y, m=1.5, n=1.5, *args, **kwargs):
-        from smote_variants import MWMOTE
         X, y = self.ROS_with_Ratio(X, y, m)
         
         return MWMOTE().sample(X, y)
@@ -118,92 +159,86 @@ class DataResampler:
     def MWMOTE(self, X, y, *args, **kwargs):
         if not isinstance(X, ndarray):
             X, y = X.to_numpy(), y.to_numpy()
-        from smote_variants import MWMOTE
         return MWMOTE().sample(X, y)
     
     def MWMOTE_ROS(self, X, y, *args, **kwargs):
         a = kwargs.get('a', 1.0)
-        from smote_variants import MWMOTE
         # X = X.astype(float)
         X, y = self.ROS_with_Ratio(X, y, a)
         return MWMOTE().sample(X, y)
     
     def MWMOTE_RUS(self, X, y, a=1.5, *args, **kwargs):
-        from smote_variants import MWMOTE
         # X = X.astype(float)
         X, y = self.RUS_with_Ratio(X, y, 1.5)
         return MWMOTE().sample(X, y)
-    
-    def random_under_sampling(self,  X, y, *args, **kwargs):
-        from imblearn.under_sampling import RandomUnderSampler
+
+    def random_under_sampling(self, X, y, *args, **kwargs):
         return RandomUnderSampler(random_state=0).fit_resample(X,y)
-    
-    def cluster_centroids(self,  X, y, *args, **kwargs):
-        from imblearn.under_sampling import ClusterCentroids
+
+    def cluster_centroids(self, X, y, *args, **kwargs):
         return ClusterCentroids(random_state=0, n_jobs=1).fit_resample(X,y)
-    
-    def near_miss(self,  X, y, *args, **kwargs):
-        from imblearn.under_sampling import NearMiss
-        return NearMiss(n_jobs=1).fit_resample(X,y)
-    
+
+    def near_miss(self, X, y, *args, **kwargs):
+        return NearMiss(n_jobs=1, version=3).fit_resample(X,y)
+
     def instance_hardness_threshold(self,  X, y, *args, **kwargs):
-        from imblearn.under_sampling import InstanceHardnessThreshold
         return InstanceHardnessThreshold(random_state=0, n_jobs=1).fit_resample(X,y)
-    
+
     def one_sided_selection(self,  X, y, *args, **kwargs):
-        from imblearn.under_sampling import OneSidedSelection
         return OneSidedSelection(n_jobs=1).fit_resample(X,y)
-    
+
     def tomek_links(self,  X, y, *args, **kwargs):
-        from imblearn.under_sampling import TomekLinks
         return TomekLinks(n_jobs=1).fit_resample(X,y)
-    
+
     def edited_nearest_neighbours(self,  X, y, *args, **kwargs):
-        from imblearn.under_sampling import EditedNearestNeighbours
         return EditedNearestNeighbours(n_jobs=1).fit_resample(X,y)
-    
+
     def repeated_edited_nearest_neighbours(self,  X, y, *args, **kwargs):
-        from imblearn.under_sampling import RepeatedEditedNearestNeighbours
         return RepeatedEditedNearestNeighbours(n_jobs=1).fit_resample(X,y)
-    
+
     def all_knn(self,  X, y, *args, **kwargs):
-        from imblearn.under_sampling import AllKNN
         return AllKNN(n_jobs=1).fit_resample(X,y)
-    
-    
+
+    def condensed_nearest_neighbour(self,  X, y, *args, **kwargs):
+        return CondensedNearestNeighbour(n_jobs=1).fit_resample(X,y)
+
     def random_over_sampling(self, X, y, *args, **kwargs):
-        from imblearn.over_sampling import RandomOverSampler
         X_resampled, y_resampled = RandomOverSampler(random_state=0).fit_resample(X, y)
         return X_resampled, y_resampled
- 
+
     def basic_smote(self,  X, y, *args, **kwargs):
-        from imblearn.over_sampling import SMOTE
         return SMOTE(random_state=0, n_jobs=1).fit_resample(X, y)
-    
+
     def bordered_smote(self, X, y, *args, **kwargs):
-        from imblearn.over_sampling import BorderlineSMOTE
         return BorderlineSMOTE(random_state=0, n_jobs=1).fit_resample(X, y)
-    
+
     def svm_smote(self, X, y, *args, **kwargs):
-        from imblearn.over_sampling import SVMSMOTE
         return SVMSMOTE(random_state=0, n_jobs=1).fit_resample(X, y)
-    
+
     def adasyn(self, X, y, *args, **kwargs):
-        from imblearn.over_sampling import ADASYN
         return ADASYN(random_state=0, n_jobs=1).fit_resample(X, y)
-    
+
     def kmeans_smote(self, X, y, *args, **kwargs):
-        from imblearn.over_sampling import KMeansSMOTE
         return KMeansSMOTE(random_state=0, n_jobs=1).fit_resample(X, y)
+
+    def save_level_smote(self, X, y, *args, **kwargs):
+        return Safe_Level_SMOTE(random_state=0).fit_resample(X, y)
     
     def smotenc(self, X, y, *args, **kwargs):
-        from imblearn.over_sampling import SMOTENC
         return SMOTENC(random_state=0, n_jobs=1).fit_resample(X, y)
-    
+
     def smoten(self, X, y, *args, **kwargs):
-        from imblearn.over_sampling import SMOTEN
         return SMOTEN(random_state=0, n_jobs=1).fit_resample(X, y)
+
+    def smote_enn(self, X, y, *args, **kwargs):
+        return SMOTEENN(random_state=0).fit_resample(X, y)
+
+    def nras(self, X, y, *args, **kwargs):
+        return NRAS(random_state=0).fit_resample(X, y)
     
+    def smote_tomek(self, X, y, *args, **kwargs):
+        return SMOTETomek(random_state=0).fit_resample(X, y)
+
     def adaptive_smote(self, X, y ,*, N=100, K=5, C=3):
         from sklearn.neighbors import NearestNeighbors
         import numpy as np
@@ -278,7 +313,6 @@ class DataResampler:
             print("hit adaptive smote")
             _populate_inner(inner, danger, x_synthetic)
         else:
-            from imblearn.over_sampling import RandomOverSampler
             X_resampled, y_resampled = RandomOverSampler(random_state=0).fit_resample(X, y)
             return X_resampled, y_resampled
         
@@ -373,17 +407,13 @@ class DataResampler:
             _populate_inner(inner, danger, x_synthetic)
         else:
             print("****didn't hit adaptive smote****")
-            from imblearn.over_sampling import RandomOverSampler
             X_resampled, y_resampled = RandomOverSampler(random_state=0).fit_resample(X, y)
             return X_resampled, y_resampled
 
         y_synthetic = np.zeros(majority_num - minority_num,)
         return np.concatenate((X, x_synthetic), axis=0), np.concatenate((y, y_synthetic), axis=0)
-    
-  
-    
-  
-  
+
+
 if __name__ == '__main__':
     data_path = "G:/OneDrive - teleworm/code/4research/python/projects/imbalanced/datasets/german/german.csv"
     # from DataTool import DataLoader
@@ -397,10 +427,10 @@ if __name__ == '__main__':
     # train_df = data_loader.load_csv_to_pandas(data_path)
     # print(train_df.shape)
     from sklearn.datasets import make_classification
-    toy_X, toy_y  = make_classification(n_samples=2000, n_features=10, n_informative=2,
+    toy_X, toy_y  = make_classification(n_samples=1000, n_features=5, n_informative=2,
                            n_redundant=0, n_repeated=0, n_classes=2,
                            n_clusters_per_class=1,
-                           weights=[0.1, 0.9],
+                           weights=[0.3, 0.7],
                            class_sep=0.8, random_state=0)
     
     print('Original dataset shape %s' % Counter(toy_y))
@@ -440,7 +470,8 @@ if __name__ == '__main__':
 
     start_time = time.time()
     args = {'a_ros': 1.5, 'a_rus': 2}
-    X_resampled, y_resampled = data_resampler.MWMote_ROS_RUS_1(toy_X, toy_y, **args)
+    # X_resampled, y_resampled = data_resampler.near_miss(toy_X, toy_y, **args)
+    X_resampled, y_resampled = data_resampler.one_sided_selection(toy_X, toy_y, **args)
     # from sklearn.ensemble import RandomForestClassifier
     # random_forest_classifier = RandomForestClassifier(n_estimators=50, random_state=1, n_jobs=48)
     # random_forest_classifier.fit(X_resampled, y_resampled)

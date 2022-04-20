@@ -6,16 +6,17 @@ class Result:
     id: int
     dataset: str
     resampler: str
-    resample_time: float
+    # resample_time: float
     trainer: str
-    train_time: float
-    precision: float
+    # train_time: float
+    auc: float
+    iba: float
+    accuracy: float
     recall: float
+    precision: float
     fscore: float
-    support: int
-    auc: float = None
-    gmean: float = None
-    shuffle: bool = False
+    gmean2: float
+    # shuffle: bool = False
     original_maj_min: str = None
     resampled_maj_min: str = None
     resample_args: str = None

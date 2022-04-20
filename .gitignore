@@ -6,6 +6,7 @@
 .vscode
 .ipynb_checkpoints
 
+/cache_data
 /datasets
 /result
 /ref
