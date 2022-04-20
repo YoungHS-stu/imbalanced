@@ -8,7 +8,7 @@ import time
 
 if __name__ == '__main__':
     from config import *
-    result_csv = data_loader.load_csv_to_pandas("./result_template.csv")
+    # result_csv = data_loader.load_csv_to_pandas("./result_template.csv")
     result_cnt = 0
     # loop datasets
     for dataset in datasets:

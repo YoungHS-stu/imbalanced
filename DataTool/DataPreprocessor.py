@@ -16,7 +16,7 @@ class DataPreprocessor:
         return data.loc[:, data.columns != y_column_name], data[y_column_name]
     
     def split_to_train_test(self, train_df_X, train_df_y, test_size=0.3, random_state=5):
-        X_train, X_test, y_train, y_test = train_test_split(train_df_X, train_df_y,
+        X_train, X_test, y_train, y_test = train_test_split(train_df_X, train_df_y, stratify=train_df_y,
                                                             test_size=test_size, random_state=random_state)
         return X_train, X_test, y_train, y_test
     def split_to_train_validate_test(self, data, validate_size=0.2, test_size=0.2, random_state=1):
